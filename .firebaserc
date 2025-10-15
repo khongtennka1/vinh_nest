@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "roomrental-d2361"
+  },
+  "targets": {
+    "roomrental-d2361": {
+      "hosting": {
+        "user": [
+          "roomrental-d2361"
+        ],
+        "admin": [
+          "roomrental-d2361-admin"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
