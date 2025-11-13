@@ -7,11 +7,12 @@ class Users {
   final String? phone;
   final String? avatar;
   final String role;
+  final String? gender;
   final String status;
   Timestamp createAt;
   Timestamp updateAt;
 
-  Users({required this.userId, required this.name, required this.email, this.phone, this.avatar, this.role = 'user', this.status = 'active', Timestamp? createAt, Timestamp? updateAt})
+  Users({required this.userId, required this.name, required this.email, this.phone, this.avatar, this.role = 'user', this.gender, this.status = 'active', Timestamp? createAt, Timestamp? updateAt})
       : this.createAt = createAt ?? Timestamp.now(),
         this.updateAt = updateAt ?? Timestamp.now();
 
@@ -23,6 +24,7 @@ class Users {
       phone: json['phone'],
       avatar: json['avatar'],
       role: json['role'] ?? 'user',
+      gender: json['gender'] ?? 'gender',
       status: json['status'] ?? 'active',
       createAt: json['createAt'] ?? Timestamp.now(),
       updateAt: json['updateAt'] ?? Timestamp.now(),

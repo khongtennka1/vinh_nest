@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
+// import 'package:crypto/crypto.dart';
+// import 'dart:convert';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
 
@@ -21,12 +21,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _showPassword = false;
   bool _showConfirmPassword = false;
-
-  String _hashPassword(String password) {
-    final bytes = utf8.encode(password);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
 
   @override
   void dispose() {
@@ -100,7 +94,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelStyle: const TextStyle(fontSize: 20),
                           hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
-                          fillColor: Colors.white.withAlpha(180),
+                          fillColor: Colors.white.withAlpha(250),
                           prefixIcon: const Icon(Icons.person),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -129,7 +123,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelStyle: const TextStyle(fontSize: 20),
                           hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
-                          fillColor: Colors.white.withAlpha(180),
+                          fillColor: Colors.white.withAlpha(250),
                           prefixIcon: const Icon(Icons.email),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -162,7 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelStyle: const TextStyle(fontSize: 20),
                           hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
-                          fillColor: Colors.white.withAlpha(180),
+                          fillColor: Colors.white.withAlpha(250),
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -204,7 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelStyle: const TextStyle(fontSize: 20),
                           hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
-                          fillColor: Colors.white.withAlpha(180),
+                          fillColor: Colors.white.withAlpha(250),
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -243,31 +237,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               : ElevatedButton(
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
-                                final hashedPassword =
-                                _hashPassword(_passwordController.text);
-                                final hashedConfirmPassword =
-                                _hashPassword(_confirmPasswordController.text);
+                                final password = _passwordController.text;
+                                final confirmPassword = _confirmPasswordController.text;
 
                                 bool success = await authProvider.register(
                                   _nameController.text.trim(),
                                   _emailController.text.trim(),
-                                  hashedPassword,
-                                  hashedConfirmPassword,
+                                  password,
+                                  confirmPassword,
                                 );
 
                                 if (success && context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Đăng ký thành công! Hãy đăng nhập.',
-                                      ),
-                                    ),
+                                    const SnackBar(content: Text('Đăng ký thành công! Hãy đăng nhập.')),
                                   );
                                   Navigator.pushReplacement(
                                     context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                        const LoginScreen()),
+                                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                  );
+                                } else if (context.mounted) {
+                                  final error = context.read<AuthProvider>().errorMessage ?? 'Đăng ký thất bại.';
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(error)),
                                   );
                                 }
                               }

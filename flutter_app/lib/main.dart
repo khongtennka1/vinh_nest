@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+
+import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
-import 'screens/home_screen.dart'; 
+import 'screens/home_screen.dart';
+
 import 'providers/auth_provider.dart';
+import 'providers/room_provider.dart';
+import 'providers/create_post_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // await FirebaseAppCheck.instance.activate(
+  //   providerAndroid: AndroidAppCheckProvider, 
+  //   providerApple: AppleAppCheckProvider,       
+  // );
   runApp(const MyApp());
 }
 
@@ -21,12 +32,21 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => RoomProvider()),
+        // ChangeNotifierProvider(create: (_) => CreatePostProvider()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Room Rental App',
-        theme: ThemeData(primarySwatch: Colors.blue),
-        initialRoute: '/login',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: Colors.white,
+        ),
+
+        initialRoute: '/welcome',
+
         routes: {
+          '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),

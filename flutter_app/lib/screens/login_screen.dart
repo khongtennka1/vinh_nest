@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           labelStyle: const TextStyle(fontSize: 20),
                           hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
-                          fillColor: Colors.white.withOpacity(0.9),
+                          fillColor: Colors.white.withAlpha(250),
                           prefixIcon: const Icon(Icons.email),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           labelStyle: const TextStyle(fontSize: 20),
                           hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
-                          fillColor: Colors.white.withOpacity(0.9),
+                          fillColor: Colors.white.withAlpha(250),
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
