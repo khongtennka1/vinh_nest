@@ -20,7 +20,7 @@ class HomeScreen extends StatelessWidget {
       'image': 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=800'
     },
     {
-      'name': 'Thành VInh',
+      'name': 'Thành Vinh',
       'image': 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=800'
     },
     {

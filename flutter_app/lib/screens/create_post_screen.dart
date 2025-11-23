@@ -116,6 +116,17 @@ class Step1 extends StatelessWidget {
             const Text('Thông tin phòng', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange)),
             const SizedBox(height: 16),
 
+             _buildTextField(
+              controller: provider.floorController,
+              label: 'Tiêu đề *',
+              hint: 'Nhập tiêu đề',
+              icon: Icons.title,
+              keyboardType: TextInputType.text,
+              validator: (v) => v!.isEmpty ? 'Vui lòng nhập tiêu đề' : null,
+            ),
+
+            const SizedBox(height: 16),
+
             _buildDropdown(
               label: 'Loại phòng *',
               value: provider.roomType,

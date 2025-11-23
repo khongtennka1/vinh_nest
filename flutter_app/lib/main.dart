@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => RoomProvider()),
-        // ChangeNotifierProvider(create: (_) => CreatePostProvider()),
+        ChangeNotifierProvider(create: (_) => CreatePostProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
