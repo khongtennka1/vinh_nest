@@ -35,6 +35,10 @@ android {
     }
 }
 
+dependencies {
+    implementation("com.google.firebase:firebase-appcheck-debug:19.0.1")
+}
+
 flutter {
     source = "../.."
 }

@@ -9,11 +9,21 @@ class Users {
   final String role;
   final String? gender;
   final String status;
-  Timestamp createAt;
-  Timestamp updateAt;
+  final Timestamp createAt;
+  final Timestamp updateAt;
 
-  Users({required this.userId, required this.name, required this.email, this.phone, this.avatar, this.role = 'user', this.gender, this.status = 'active', Timestamp? createAt, Timestamp? updateAt})
-      : this.createAt = createAt ?? Timestamp.now(),
+  Users({
+    required this.userId,
+    required this.name,
+    required this.email,
+    this.phone,
+    this.avatar,
+    this.role = 'user',
+    this.gender,
+    this.status = 'active',
+    Timestamp? createAt,
+    Timestamp? updateAt,
+  })  : this.createAt = createAt ?? Timestamp.now(),
         this.updateAt = updateAt ?? Timestamp.now();
 
   factory Users.fromJson(Map<String, dynamic> json) {
@@ -24,10 +34,14 @@ class Users {
       phone: json['phone'],
       avatar: json['avatar'],
       role: json['role'] ?? 'user',
-      gender: json['gender'] ?? 'gender',
+      gender: json['gender'],    
       status: json['status'] ?? 'active',
-      createAt: json['createAt'] ?? Timestamp.now(),
-      updateAt: json['updateAt'] ?? Timestamp.now(),
+      createAt: json['createAt'] is Timestamp
+          ? json['createAt']
+          : Timestamp.now(),
+      updateAt: json['updateAt'] is Timestamp
+          ? json['updateAt']
+          : Timestamp.now(),
     );
   }
 
@@ -38,6 +52,7 @@ class Users {
       'email': email,
       'phone': phone,
       'avatar': avatar,
+      'gender': gender,
       'role': role,
       'status': status,
       'createAt': createAt,

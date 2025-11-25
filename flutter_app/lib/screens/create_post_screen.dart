@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/create_post_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import '../providers/create_post_provider.dart';
 
 class CreatePostScreen extends StatelessWidget {
   const CreatePostScreen({super.key});
@@ -25,44 +25,38 @@ class _CreatePostView extends StatelessWidget {
       builder: (context, provider, child) {
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.pop(context),
-            ),
+            leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
             title: Text('Tạo bài đăng - Bước ${provider.currentStep + 1}/3'),
             centerTitle: true,
           ),
-          body: _buildStep(provider, context),
-          bottomNavigationBar: _buildBottomBar(provider, context),
+          body: _buildStep(context, provider),
+          bottomNavigationBar: _buildBottomBar(context, provider),
         );
       },
     );
   }
 
-  Widget _buildStep(CreatePostProvider provider, BuildContext context) {
+  Widget _buildStep(BuildContext context, CreatePostProvider provider) {
     switch (provider.currentStep) {
       case 0:
-        return Step1(provider: provider);
+        return _Step1(provider: provider);
       case 1:
-        return Step2(provider: provider);
+        return _Step2(provider: provider);
       case 2:
-        return Step3(provider: provider);
+        return _Step3(provider: provider);
       default:
         return const SizedBox();
     }
   }
 
-  Widget _buildBottomBar(CreatePostProvider provider, BuildContext context) {
+  Widget _buildBottomBar(BuildContext context, CreatePostProvider provider) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           if (provider.currentStep > 0)
             Expanded(
-              child: OutlinedButton(
-                onPressed: provider.previousStep,
-                child: const Text('Quay lại'),
-              ),
+              child: OutlinedButton(onPressed: provider.previousStep, child: const Text('Quay lại')),
             ),
           if (provider.currentStep > 0) const SizedBox(width: 16),
           Expanded(
@@ -71,12 +65,12 @@ class _CreatePostView extends StatelessWidget {
                   ? null
                   : () async {
                       if (provider.currentStep < 2) {
-                        if ((provider.currentStep == 0 && provider.formKey1.currentState!.validate()) ||
-                            (provider.currentStep == 1 && provider.formKey2.currentState!.validate())) {
-                          provider.nextStep();
-                        }
+                        final isValid = provider.currentStep == 0
+                            ? provider.formKey1.currentState!.validate()
+                            : provider.formKey2.currentState!.validate();
+                        if (isValid) provider.nextStep();
                       } else {
-                        final success = await provider.createPost();
+                        final success = await provider.createPost(context);
                         if (success) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Đăng tin thành công!')),
@@ -87,11 +81,11 @@ class _CreatePostView extends StatelessWidget {
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: provider.isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : Text(provider.currentStep == 2 ? 'Đăng tin' : 'Tiếp theo'),
+                padding: const EdgeInsets.symmetric(vertical: 16)),
+              child: provider.isLoading 
+              ? const CircularProgressIndicator(
+                color: Colors.white) 
+                : Text(provider.currentStep == 2 ? 'Đăng tin' : 'Tiếp theo'),
             ),
           ),
         ],
@@ -100,9 +94,9 @@ class _CreatePostView extends StatelessWidget {
   }
 }
 
-class Step1 extends StatelessWidget {
+class _Step1 extends StatelessWidget {
   final CreatePostProvider provider;
-  const Step1({required this.provider});
+  const _Step1({required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +107,24 @@ class Step1 extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Thông tin phòng', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange)),
+            const Text(
+              'Thông tin phòng',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.orange
+              )
+            ),
+
+            const SizedBox(height: 16),
+
+            _buildTextField(
+              controller: provider.titleControler,
+              label: 'Tiêu đề *',
+              hint: 'Nhập tiêu đề',
+              icon: Icons.title,
+              validator: (v) => v!.isEmpty ? 'Vui lòng nhập tiêu đề' : null),
+
             const SizedBox(height: 16),
 
              _buildTextField(
@@ -132,30 +143,53 @@ class Step1 extends StatelessWidget {
               value: provider.roomType,
               items: ['Phòng đơn', 'Phòng đôi', 'Phòng ghép', 'Căn hộ'],
               icon: Icons.home,
-              onChanged: (v) => provider.roomType = v!,
+              onChanged: (v) { provider.roomType = v!; provider.notifyListeners();
+              }
             ),
 
             const SizedBox(height: 16),
+
             _buildTextField(
-              controller: provider.floorController,
+              controller: provider.addressController,
+              label: 'Địa chỉ *',
+              hint: 'Nhập địa chỉ',
+              icon: Icons.location_on,
+              validator: (v) => v!.isEmpty ? 'Vui lòng nhập địa chỉ' : null
+            ),
+
+            const SizedBox(height: 16),
+
+            _buildTextField(controller: provider.floorController,
               label: 'Tầng *',
               hint: 'Nhập tầng',
               icon: Icons.stairs,
               keyboardType: TextInputType.number,
-              validator: (v) => v!.isEmpty ? 'Vui lòng nhập tầng' : null,
+              validator: (v) => v!.isEmpty ? 'Vui lòng nhập tầng' : null
             ),
 
             const SizedBox(height: 16),
+
+            _buildTextField(
+              controller: provider.roomNumberController,
+              label: 'Số phòng *',
+              hint: 'Nhập số phòng',
+              icon: Icons.confirmation_number,
+              validator: (v) => v!.isEmpty ? 'Vui lòng nhập số phòng' : null
+            ),
+
+            const SizedBox(height: 16),
+
             _buildTextField(
               controller: provider.areaController,
               label: 'Diện tích (m²) *',
               hint: 'Nhập diện tích',
               icon: Icons.square_foot,
               keyboardType: TextInputType.number,
-              validator: (v) => v!.isEmpty ? 'Vui lòng nhập diện tích' : null,
+              validator: (v) => v!.isEmpty ? 'Vui lòng nhập diện tích' : null
             ),
 
             const SizedBox(height: 16),
+
             _buildTextField(
               controller: provider.capacityController,
               label: 'Sức chứa (người/phòng) *',
@@ -163,101 +197,87 @@ class Step1 extends StatelessWidget {
               icon: Icons.people,
               keyboardType: TextInputType.number,
               validator: (v) {
-                if (v == null || v.isEmpty) {
+                if (v == null || v.isEmpty)
                   return 'Vui lòng nhập sức chứa';
+                  return null; 
                 }
-                return null; 
-              },
-            ),
+              ),
 
             const SizedBox(height: 16),
+
             _buildTextField(
               controller: provider.currentResidentsController,
               label: 'Số người hiện tại *',
               hint: 'Nhập số người',
               icon: Icons.person,
               keyboardType: TextInputType.number,
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Vui lòng nhập số người';
-                final current = int.tryParse(v);
-                final capacityText = provider.capacityController.text;
-                if (capacityText.isEmpty) return 'Vui lòng nhập sức chứa trước';
-                final capacity = int.tryParse(capacityText);
-                if (current == null) return 'Số không hợp lệ';
-                if (capacity == null) return 'Sức chứa không hợp lệ';
-                if (current > capacity) {
-                  return 'Không thể vượt quá sức chứa ($capacity người)';
-                }
-                return null;
-              }
+              validator: (v) { 
+                if (v == null || v.isEmpty)
+                  return 'Vui lòng nhập số người';
+                  final current = int.tryParse(v);
+                  final capacityText = provider.capacityController.text;
+                  if (capacityText.isEmpty)
+                    return 'Vui lòng nhập sức chứa trước';
+                    final capacity = int.tryParse(capacityText);
+                    if (current == null) return 'Số không hợp lệ';
+                    if (capacity == null) return 'Sức chứa không hợp lệ';
+                    if (current > capacity) return 'Không thể vượt quá sức chứa ($capacity người)';
+                      return null; 
+                    }
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Tiền phòng',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.orange
+              )
             ),
 
             const SizedBox(height: 16),
-            _buildDateField(provider, context),
 
-            const SizedBox(height: 24),
-            const Text('Tiền phòng', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange)),
-
-            const SizedBox(height: 16),
             _buildTextField(
               controller: provider.priceController,
               label: 'Giá thuê (VND/tháng) *',
               hint: 'Nhập số tiền',
               icon: Icons.attach_money,
               keyboardType: TextInputType.number,
-              validator: (v) => v!.isEmpty ? 'Vui lòng nhập giá' : null,
+              validator: (v) => v!.isEmpty ? 'Vui lòng nhập giá' : null
             ),
 
             const SizedBox(height: 16),
+
             Row(
               children: [
-                Expanded(child: _buildRadio('Theo đầu người', 'per_person', provider)),
-                Expanded(child: _buildRadio('Theo phòng', 'per_room', provider)),
-              ],
+                Expanded(
+                  child: _buildRadio(
+                    'Theo đầu người',
+                    'per_person',
+                    provider
+                  )
+                ),
+                Expanded(
+                  child: _buildRadio(
+                    'Theo phòng',
+                    'per_room',
+                    provider
+                  )
+                )
+              ]
             ),
-
-            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildDateField(CreatePostProvider provider, BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Ngày chuyển vào *', style: TextStyle(fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: provider.moveInDateController,
-          readOnly: true,
-          decoration: InputDecoration(
-            hintText: 'dd/mm/yyyy',
-            prefixIcon: const Icon(Icons.calendar_today, color: Colors.orange),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          validator: (v) => v!.isEmpty ? 'Vui lòng chọn ngày' : null,
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
-            );
-            if (date != null) {
-              provider.moveInDateController.text = '${date.day}/${date.month}/${date.year}';
-            }
-          },
-        ),
-      ],
-    );
-  }
 }
 
-class Step2 extends StatelessWidget {
+class _Step2 extends StatelessWidget {
   final CreatePostProvider provider;
-  Step2({required this.provider});
+  _Step2({required this.provider});
 
   final List<String> amenities = ['Wifi', 'Điều hòa', 'Tủ lạnh', 'Máy giặt', 'Bếp', 'Bàn ghế', 'Gác lửng'];
   final List<String> furniture = ['Giường', 'Tủ quần áo', 'Bàn học', 'Ghế', 'Kệ sách'];
@@ -344,148 +364,180 @@ class Step2 extends StatelessWidget {
   }
 }
 
-class Step3 extends StatelessWidget {
+class _Step3 extends StatelessWidget {
   final CreatePostProvider provider;
-  const Step3({required this.provider});
+  const _Step3({required this.provider});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Ảnh minh họa',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
-          ),
+    return Form(
+      key: provider.formKey3,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Ảnh minh họa', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange)),
           const SizedBox(height: 8),
-          const Text(
-            'Thêm ít nhất 1 ảnh để bài đăng hấp dẫn hơn',
-            style: TextStyle(color: Colors.grey),
-          ),
-
+          const Text('Thêm ít nhất 1 ảnh để bài đăng hấp dẫn hơn', style: TextStyle(color: Colors.grey)),
           const SizedBox(height: 16),
 
           InkWell(
-            onTap: () => _pickImages(provider),
+            onTap: () => _pickAndUploadImages(context),
             child: Container(
               height: 120,
               width: double.infinity,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.orange, width: 2),
+                border: Border.all(
+                  color: Colors.orange,
+                  width: 2
+                ),
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.orange.withAlpha(10),
+                color: Colors.orange.withAlpha(10)
               ),
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_a_photo, size: 40, color: Colors.orange),
+                  Icon(
+                    Icons.add_a_photo,
+                    size: 40,
+                    color: Colors.orange
+                  ),
                   SizedBox(height: 8),
                   Text(
                     'Thêm ảnh',
-                    style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w600),
-                  ),
-                ],
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.w600
+                    )
+                  ) 
+                ]
               ),
             ),
           ),
 
           const SizedBox(height: 16),
 
-          if (provider.selectedImages.isNotEmpty) ...[
-            Text(
-              'Ảnh đã chọn (${provider.selectedImages.length})',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1,
-              ),
-              itemCount: provider.selectedImages.length,
-              itemBuilder: (ctx, i) {
-                return Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(provider.selectedImages[i].path),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
-                    ),
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: InkWell(
-                        onTap: () {
-                          provider.selectedImages.removeAt(i);
-                          provider.notifyListeners();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.close, size: 16, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 6,
-                      left: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${i + 1}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ] else ...[
-            const Center(
-              child: Text(
-                'Chưa có ảnh nào được chọn',
-                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-              ),
-            ),
-          ],
+          if (provider.isUploadingImages) const LinearProgressIndicator(),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
+
+          provider.selectedImages.isNotEmpty
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Ảnh đã chọn (${provider.selectedImages.length})', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1
+                    ),
+                    itemCount: provider.selectedImages.length,
+                    itemBuilder: (ctx, i) {
+                      final local = provider.selectedImages[i];
+                      final uploadedUrl = (i < provider.imageUrls.length) ? provider.imageUrls[i] : null;
+                      return Stack(children: [
+                        ClipRRect(borderRadius: BorderRadius.circular(12),
+                          child: Image.file(File(local.path),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity
+                        )),
+                        if (uploadedUrl == null)
+                          Positioned(bottom: 6,
+                            left: 6,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(8)),
+                                child: const Text(
+                                  'Chưa upload',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12
+                                  )
+                                )
+                              )
+                          ),
+                        if (uploadedUrl != null)
+                          Positioned(
+                            bottom: 6,
+                            left: 6,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(8)
+                              ),
+                              child: const Text(
+                                'Uploaded',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12
+                                )
+                              )
+                            )
+                          ),
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: InkWell(
+                            onTap: () {
+                              provider.removeImageAt(i); 
+                            },
+                            child: const CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.red,
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.white
+                              )
+                            )
+                          )
+                        ),
+                      ]);
+                    },
+                  ),
+                ],
+              )
+            : const Center(child: Text('Chưa có ảnh nào được chọn', style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic))),
 
           if (provider.selectedImages.isEmpty)
-            const Text(
-              'Vui lòng thêm ít nhất 1 ảnh',
-              style: TextStyle(color: Colors.red, fontSize: 13),
-            ),
-        ],
+            const Padding(padding: EdgeInsets.only(top: 16), child: Text('Vui lòng thêm ít nhất 1 ảnh', style: TextStyle(color: Colors.red, fontSize: 13))),
+        ]),
       ),
     );
   }
 
-  Future<void> _pickImages(CreatePostProvider provider) async {
+  Future<void> _pickAndUploadImages(BuildContext context) async {
+    final provider = context.read<CreatePostProvider>();
     final picker = ImagePicker();
-    final picked = await picker.pickMultiImage();
-    if (picked.isNotEmpty) {
-      provider.selectedImages.addAll(picked);
+    final picked = await picker.pickMultiImage(imageQuality: 80);
+    if (picked.isEmpty) return;
+
+    provider.addLocalImages(picked);
+
+    for (int i = 0; i < provider.selectedImages.length; i++) {
+      if (i < provider.imageUrls.length) continue;
+      provider.isUploadingImages = true;
       provider.notifyListeners();
+      final ok = await provider.uploadImageFileAt(i);
+      provider.isUploadingImages = false;
+      provider.notifyListeners();
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload ảnh thất bại, thử lại sau')));
+        return;
+      }
     }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload ảnh thành công')));
   }
 }
 
@@ -499,65 +551,65 @@ Widget _buildTextField({
   int maxLines = 1,
   String? counter,
 }) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-      const SizedBox(height: 8),
-      TextFormField(
-        controller: controller,
-        validator: validator,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.orange),
-          suffixText: counter,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+    const SizedBox(height: 8),
+    TextFormField(
+      controller: controller,
+      validator: validator,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(
+          icon, color: Colors.orange
         ),
-      ),
-    ],
-  );
+        suffixText: counter,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12)
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12
+        )
+      )
+    ),
+  ]);
 }
 
-Widget _buildDropdown({
-  required String label,
-  required String value,
-  required List<String> items,
-  required IconData icon,
-  required void Function(String?) onChanged,
-}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-      const SizedBox(height: 8),
-      DropdownButtonFormField<String>(
-        value: value,
-        items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: Colors.orange),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+Widget _buildDropdown({required String label, required String value, required List<String> items, required IconData icon, required void Function(String?) onChanged}) {
+  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+    const SizedBox(height: 8),
+    DropdownButtonFormField<String>(
+      value: value,
+      items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        prefixIcon: Icon(
+          icon, color: Colors.orange
         ),
-      ),
-    ],
-  );
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12)
+        )
+      )
+    ),
+  ]);
 }
 
 Widget _buildRadio(String title, String value, CreatePostProvider provider) {
   return ListTile(
-    title: Text(title, style: const TextStyle(fontSize: 14)),
+    title: Text(
+      title,
+      style: const TextStyle(fontSize: 14)
+    ),
     leading: Radio<String>(
       value: value,
       groupValue: provider.pricingType,
       onChanged: (v) {
-        provider.pricingType = v!;
-        provider.notifyListeners();
-      },
+        provider.pricingType = v!; provider.notifyListeners(); 
+      }
     ),
-    contentPadding: EdgeInsets.zero,
-    dense: true,
+    contentPadding: EdgeInsets.zero, dense: true
   );
 }

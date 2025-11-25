@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:room_rental_app/screens/create_post_screen.dart';
 import '../providers/room_provider.dart';
-import '../models/room.dart';
 import '../models/hostel.dart';
 import '../models/address.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -250,12 +248,11 @@ class HomeScreen extends StatelessWidget {
                               builder: (_) => RoomDetailScreen(
                                 room: _convertMap({
                                   'id': room.id,
+                                  'title': room.title,
                                   'roomNumber': room.roomNumber,
                                   'price': room.price,
                                   'description': room.description,
                                   'images': room.images,
-                                  // 'amenities': room.amenities,
-                                  // 'furniture': room.furniture,
                                   'floor': room.floor,
                                   'area': room.area,
                                   'capacity': room.capacity,
@@ -268,7 +265,7 @@ class HomeScreen extends StatelessWidget {
                           );
                         },
                         child: RoomPostCard(
-                          title: '${hostel.name} - Phòng ${room.roomNumber}',
+                          title: '${room.title} - Phòng ${room.roomNumber}',
                           price:
                               '${room.price.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ/tháng',
                           address:
@@ -284,48 +281,12 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   );
-
                 },
               ),
-
-              SizedBox(height: 80),
             ],
           ),
         ),
       ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.red,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Trang chủ',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.ondemand_video),
-            label: 'Lượt video',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message),
-            label: 'Tin nhắn',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Cá nhân',
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-      onPressed: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const CreatePostScreen()),
-      ),
-      child: const Icon(Icons.add),
-    ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

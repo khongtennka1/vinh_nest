@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
+import 'package:room_rental_app/screens/create_post_screen.dart';
+import 'package:room_rental_app/screens/main_app_screen.dart';
 import 'firebase_options.dart';
 
 import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
-import 'screens/home_screen.dart';
+import 'providers/user_provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/room_provider.dart';
@@ -17,11 +19,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // await FirebaseAppCheck.instance.activate(
-  //   providerAndroid: AndroidAppCheckProvider, 
-  //   providerApple: AppleAppCheckProvider,       
-  // );
-  runApp(const MyApp());
+  await FirebaseAppCheck.instance.activate(
+    providerAndroid: AndroidDebugProvider(),
+  );
+
+    runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -34,6 +36,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => RoomProvider()),
         ChangeNotifierProvider(create: (_) => CreatePostProvider()),
+<<<<<<< HEAD
+=======
+        ChangeNotifierProvider(create: (_) => UserProvider()..loadCurrentUser())
+>>>>>>> fd56330 (update 25/11)
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -49,7 +55,8 @@ class MyApp extends StatelessWidget {
           '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
-          '/home': (context) => const HomeScreen(),
+          '/main': (context) => const MainAppScreen(),
+          '/create_post': (context) => const CreatePostScreen(),
         },
       ),
     );

@@ -18,28 +18,30 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
 
   Future<bool> login(String email, String password) async {
-    _isLoading = true;
-    _errorMessage = null;
+  _isLoading = true;
+  _errorMessage = null;
+  notifyListeners();
+
+  try {
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: password.trim(),
+    );
+
+    _currentUser = userCredential.user;   
+    await _storage.write(key: 'uid', value: _currentUser!.uid);
+
+    _isLoading = false;
     notifyListeners();
-
-    try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
-      );
-
-      await _storage.write(key: 'uid', value: userCredential.user!.uid);
-
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = _handleAuthError(e);
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+    return true;
+  } catch (e) {
+    _errorMessage = _handleAuthError(e);
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
+}
+
 
   Future<bool> register(
   String name,
@@ -106,20 +108,18 @@ class AuthProvider with ChangeNotifier {
 
 Future<void> checkAuthState() async {
   final uid = await _storage.read(key: 'uid');
-  if(uid != null) {
-    try {
-      final user = _auth.currentUser;
-      if (user != null && user.uid == uid) {
-        _currentUser = user;
-      } else {
-        await _auth.signInAnonymously();
-      }
-      notifyListeners();
-    } catch (e) {
-      await _storage.delete(key: 'uid');
-    }
+
+  final user = _auth.currentUser;
+
+  if (uid != null && user != null && user.uid == uid) {
+    _currentUser = user;
+  } else {
+    _currentUser = null;
   }
+
+  notifyListeners();
 }
+
 
   String _handleAuthError(dynamic e) {
     if (e is FirebaseAuthException) {
@@ -142,5 +142,12 @@ Future<void> checkAuthState() async {
 
   Future<void> resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  Future<void> logout() async {
+    await _auth.signOut();
+    await _storage.delete(key: 'uid');
+    _currentUser = null;
+    notifyListeners();
   }
 }
