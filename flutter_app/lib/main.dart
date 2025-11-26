@@ -23,7 +23,7 @@ void main() async {
     providerAndroid: AndroidDebugProvider(),
   );
 
-    runApp(MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -36,10 +36,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => RoomProvider()),
         ChangeNotifierProvider(create: (_) => CreatePostProvider()),
-<<<<<<< HEAD
-=======
-        ChangeNotifierProvider(create: (_) => UserProvider()..loadCurrentUser())
->>>>>>> fd56330 (update 25/11)
+        ChangeNotifierProvider(
+          create: (_) => UserProvider()..loadCurrentUser(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

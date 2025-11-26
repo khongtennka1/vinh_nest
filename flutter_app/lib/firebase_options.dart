@@ -83,4 +83,5 @@ class DefaultFirebaseOptions {
     authDomain: 'roomrental-d2361.firebaseapp.com',
     storageBucket: 'roomrental-d2361.firebasestorage.app',
   );
+
 }
