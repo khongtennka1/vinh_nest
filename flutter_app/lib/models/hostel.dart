@@ -11,7 +11,7 @@ class Hostel {
   final DateTime createdAt;
   final DateTime? updatedAt;
   final String? status;
-  
+
   Hostel({
     required this.id,
     required this.ownerId,
@@ -48,21 +48,22 @@ class Hostel {
       facilities: _toStringList(data['facilities']),
       images: _toStringList(data['images']),
       createdAt: _parseTimestamp(data['createdAt']),
-      updatedAt:
-          data['updatedAt'] != null ? _parseTimestamp(data['updatedAt']) : null,
+      updatedAt: data['updatedAt'] != null
+          ? _parseTimestamp(data['updatedAt'])
+          : null,
       status: data['status'],
     );
   }
 
   Map<String, dynamic> toMap() => {
-        'ownerId': ownerId,
-        'name': name,
-        'addressId': addressId,
-        'description': description,
-        'facilities': facilities,
-        'images': images,
-        'createdAt': Timestamp.fromDate(createdAt),
-        'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
-        'status': status,
-      };
+    'ownerId': ownerId,
+    'name': name,
+    'addressId': addressId,
+    'description': description,
+    'facilities': facilities,
+    'images': images,
+    'createdAt': Timestamp.fromDate(createdAt),
+    'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+    'status': status,
+  };
 }

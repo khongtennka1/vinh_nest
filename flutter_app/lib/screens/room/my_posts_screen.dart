@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../widgets/my_room_card.dart';
+import '../../widgets/my_room_card.dart';
 
 class MyPostsScreen extends StatelessWidget {
   const MyPostsScreen({super.key});
@@ -21,7 +21,10 @@ class MyPostsScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.red,
-        title: const Text('Quản lý bài đăng', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Quản lý bài đăng',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
@@ -37,7 +40,9 @@ class MyPostsScreen extends StatelessWidget {
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Colors.red));
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.red),
+            );
           }
 
           final docs = snapshot.data!.docs;
@@ -61,8 +66,11 @@ class MyPostsScreen extends StatelessWidget {
                   roomId: roomId,
                   hostelId: hostelId,
                   onDelete: () => _showDeleteConfirm(context, roomId, hostelId),
-                  onToggleStatus: () =>
-                      _toggleStatus(roomId, hostelId, data['status'] == 'available'),
+                  onToggleStatus: () => _toggleStatus(
+                    roomId,
+                    hostelId,
+                    data['status'] == 'available',
+                  ),
                 ),
               );
             },
@@ -101,14 +109,21 @@ class MyPostsScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirm(BuildContext context, String? roomId, String? hostelId) {
+  void _showDeleteConfirm(
+    BuildContext context,
+    String? roomId,
+    String? hostelId,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Xóa bài đăng?'),
         content: const Text('Bạn chắc chắn muốn xóa? Không thể khôi phục.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -135,7 +150,11 @@ class MyPostsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _toggleStatus(String? roomId, String? hostelId, bool isAvailable) async {
+  Future<void> _toggleStatus(
+    String? roomId,
+    String? hostelId,
+    bool isAvailable,
+  ) async {
     if (roomId == null || hostelId == null) return;
 
     await FirebaseFirestore.instance
@@ -144,8 +163,8 @@ class MyPostsScreen extends StatelessWidget {
         .collection('rooms')
         .doc(roomId)
         .update({
-      'status': isAvailable ? 'rented' : 'available',
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+          'status': isAvailable ? 'rented' : 'available',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
   }
 }

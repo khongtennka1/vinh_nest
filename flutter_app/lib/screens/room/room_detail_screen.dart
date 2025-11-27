@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:room_rental_app/screens/message/chat_detail_screen.dart';
+
 class RoomDetailScreen extends StatelessWidget {
   final Map<String, dynamic> room;
   final String roomId;
 
-  const RoomDetailScreen({
-    required this.room,
-    required this.roomId,
-    super.key,
-  });
+  const RoomDetailScreen({super.key, required this.room, required this.roomId});
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +23,8 @@ class RoomDetailScreen extends StatelessWidget {
     final furniture = (room['furniture'] is List)
         ? List<String>.from(room['furniture'].map((e) => e.toString()))
         : <String>[];
+
+    final String ownerId = (room['ownerId'] ?? '').toString();
 
     return Scaffold(
       body: CustomScrollView(
@@ -44,12 +46,14 @@ class RoomDetailScreen extends StatelessWidget {
                         autoPlay: true,
                       ),
                       items: images
-                          .map((url) => Image.network(
-                                url,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    const Icon(Icons.broken_image),
-                              ))
+                          .map(
+                            (url) => Image.network(
+                              url,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.broken_image),
+                            ),
+                          )
                           .toList(),
                     ),
             ),
@@ -59,7 +63,9 @@ class RoomDetailScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                  icon: const Icon(Icons.favorite_border), onPressed: () {}),
+                icon: const Icon(Icons.favorite_border),
+                onPressed: () {},
+              ),
               IconButton(icon: const Icon(Icons.share), onPressed: () {}),
             ],
           ),
@@ -77,23 +83,25 @@ class RoomDetailScreen extends StatelessWidget {
                       Text(
                         room['roomNumber']?.toString() ?? 'Phòng trọ',
                         style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const Spacer(),
                       Text(
                         '${_formatPrice(room['price'])}đ/tháng',
                         style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
                     room['description']?.toString() ?? 'Không có mô tả',
-                    style:
-                        const TextStyle(fontSize: 14, color: Colors.black54),
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
                   ),
 
                   const SizedBox(height: 16),
@@ -101,12 +109,21 @@ class RoomDetailScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _infoChip(Icons.stairs, 'Tầng',
-                          room['floor']?.toString() ?? '—'),
-                      _infoChip(Icons.square_foot, 'Diện tích',
-                          '${room['area'] ?? '-'} m²'),
-                      _infoChip(Icons.people, 'Sức chứa',
-                          '${room['capacity'] ?? '-'} người'),
+                      _infoChip(
+                        Icons.stairs,
+                        'Tầng',
+                        room['floor']?.toString() ?? '—',
+                      ),
+                      _infoChip(
+                        Icons.square_foot,
+                        'Diện tích',
+                        '${room['area'] ?? '-'} m²',
+                      ),
+                      _infoChip(
+                        Icons.people,
+                        'Sức chứa',
+                        '${room['capacity'] ?? '-'} người',
+                      ),
                       _infoChip(Icons.attach_money, 'Đặt cọc', '1 tháng'),
                     ],
                   ),
@@ -119,14 +136,26 @@ class RoomDetailScreen extends StatelessWidget {
                     spacing: 12,
                     runSpacing: 8,
                     children: [
-                      _serviceChip(Icons.electrical_services, 'Điện',
-                          '${room['electricPrice'] ?? '0'}đ/kWh'),
-                      _serviceChip(Icons.water_drop, 'Nước',
-                          '${room['waterPrice'] ?? '0'}đ/m³'),
-                      _serviceChip(Icons.wifi, 'Mạng',
-                          '${room['wifiPrice'] ?? '0'}đ/phòng'),
-                      _serviceChip(Icons.cleaning_services, 'Dịch vụ chung',
-                          '${room['serviceFee'] ?? '0'}đ/người'),
+                      _serviceChip(
+                        Icons.electrical_services,
+                        'Điện',
+                        '${room['electricPrice'] ?? '0'}đ/kWh',
+                      ),
+                      _serviceChip(
+                        Icons.water_drop,
+                        'Nước',
+                        '${room['waterPrice'] ?? '0'}đ/m³',
+                      ),
+                      _serviceChip(
+                        Icons.wifi,
+                        'Mạng',
+                        '${room['wifiPrice'] ?? '0'}đ/phòng',
+                      ),
+                      _serviceChip(
+                        Icons.cleaning_services,
+                        'Dịch vụ chung',
+                        '${room['serviceFee'] ?? '0'}đ/người',
+                      ),
                     ],
                   ),
 
@@ -142,8 +171,7 @@ class RoomDetailScreen extends StatelessWidget {
                           (item) => Chip(
                             label: Text(item),
                             backgroundColor: Colors.orange.withOpacity(0.1),
-                            labelStyle:
-                                const TextStyle(color: Colors.orange),
+                            labelStyle: const TextStyle(color: Colors.orange),
                           ),
                         )
                         .toList(),
@@ -173,15 +201,23 @@ class RoomDetailScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Text('0.0',
-                          style: TextStyle(
-                              fontSize: 32, fontWeight: FontWeight.bold)),
+                      const Text(
+                        '0.0',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Row(
                         children: List.generate(
-                            5,
-                            (i) => const Icon(Icons.star_border,
-                                size: 20, color: Colors.amber)),
+                          5,
+                          (i) => const Icon(
+                            Icons.star_border,
+                            size: 20,
+                            color: Colors.amber,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       const Text('0 đánh giá'),
@@ -204,19 +240,25 @@ class RoomDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           image: const DecorationImage(
                             image: NetworkImage(
-                                'https://via.placeholder.com/160'),
+                              'https://via.placeholder.com/160',
+                            ),
                             fit: BoxFit.cover,
                           ),
                         ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Text('HOMESTAY MỚI...',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
-                            Text('Từ 1.100.000đ/tháng',
-                                style: TextStyle(color: Colors.white)),
+                            Text(
+                              'HOMESTAY MỚI...',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Từ 1.100.000đ/tháng',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ],
                         ),
                       ),
@@ -233,11 +275,9 @@ class RoomDetailScreen extends StatelessWidget {
 
       bottomSheet: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.black12, blurRadius: 10),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
         ),
         child: Row(
           children: [
@@ -254,7 +294,7 @@ class RoomDetailScreen extends StatelessWidget {
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.chat_bubble_outline),
                 label: const Text('Chat'),
-                onPressed: () {},
+                onPressed: () => _openChat(context: context, ownerId: ownerId),
               ),
             ),
             const SizedBox(width: 8),
@@ -300,8 +340,10 @@ class RoomDetailScreen extends StatelessWidget {
   }
 
   Widget _sectionTitle(String title) {
-    return Text(title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold));
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    );
   }
 
   String _formatPrice(dynamic price) {
@@ -309,8 +351,114 @@ class RoomDetailScreen extends StatelessWidget {
     final p = (price is num)
         ? price.toInt()
         : int.tryParse(price.toString()) ?? 0;
-    return p
-        .toString()
-        .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+    return p.toString().replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    );
   }
+}
+
+Future<void> _openChat({
+  required BuildContext context,
+  required String ownerId,
+}) async {
+  final currentUser = FirebaseAuth.instance.currentUser;
+
+  if (currentUser == null) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Vui lòng đăng nhập để chat')));
+    return;
+  }
+
+  final String currentUserId = currentUser.uid;
+  final String currentUserName = currentUser.displayName ?? 'Khách thuê';
+  final String currentUserAvatar =
+      currentUser.photoURL ?? 'https://i.pravatar.cc/150?u=$currentUserId';
+
+  if (ownerId.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Không tìm thấy chủ phòng (ownerId rỗng)')),
+    );
+    return;
+  }
+
+  if (ownerId == currentUserId) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Bạn không thể chat với chính mình')),
+    );
+    return;
+  }
+
+  final ownerSnap = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(ownerId)
+      .get();
+
+  if (!ownerSnap.exists) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Không tìm thấy thông tin chủ phòng')),
+    );
+    return;
+  }
+
+  final ownerData = ownerSnap.data() as Map<String, dynamic>;
+  final String ownerName = ownerData['name'] ?? 'Chủ phòng';
+  final String ownerAvatar =
+      ownerData['avatar'] ?? 'https://i.pravatar.cc/150?u=$ownerId';
+
+  final String conversationId = currentUserId.compareTo(ownerId) < 0
+      ? '$currentUserId-$ownerId'
+      : '$ownerId-$currentUserId';
+
+  final userConversationRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(currentUserId)
+      .collection('conversations')
+      .doc(conversationId);
+
+  final ownerConversationRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(ownerId)
+      .collection('conversations')
+      .doc(conversationId);
+
+  final doc = await userConversationRef.get();
+
+  if (!doc.exists) {
+    final now = Timestamp.now();
+
+    // conversation phía người thuê
+    await userConversationRef.set({
+      'peerId': ownerId,
+      'peerName': ownerName,
+      'peerAvatarUrl': ownerAvatar,
+      'lastMessage': '',
+      'lastMessageTime': now,
+      'unread': 0,
+      'createdAt': now,
+    });
+
+    // conversation phía chủ phòng
+    await ownerConversationRef.set({
+      'peerId': currentUserId,
+      'peerName': currentUserName,
+      'peerAvatarUrl': currentUserAvatar,
+      'lastMessage': '',
+      'lastMessageTime': now,
+      'unread': 0,
+      'createdAt': now,
+    });
+  }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ChatDetailScreen(
+        userName: ownerName,
+        conversationId: conversationId,
+        peerId: ownerId,
+      ),
+    ),
+  );
 }

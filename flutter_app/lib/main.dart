@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
-import 'package:room_rental_app/screens/create_post_screen.dart';
+import 'package:room_rental_app/screens/room/create_post_screen.dart';
 import 'package:room_rental_app/screens/main_app_screen.dart';
 import 'firebase_options.dart';
 
 import 'screens/welcome_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
 import 'providers/user_provider.dart';
 
 import 'providers/auth_provider.dart';

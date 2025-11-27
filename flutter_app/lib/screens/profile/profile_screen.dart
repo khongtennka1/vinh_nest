@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/user_provider.dart';
-import '../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/auth_provider.dart';
 import 'edit_profile_screen.dart';
-import 'my_posts_screen.dart'; 
+import '../room/my_posts_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -52,7 +52,9 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
                   decoration: const BoxDecoration(
                     color: Colors.red,
-                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(24),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -63,9 +65,13 @@ class ProfileScreen extends StatelessWidget {
                           backgroundColor: Colors.white,
                           child: CircleAvatar(
                             radius: 39,
-                            backgroundImage: user.avatar != null && user.avatar!.isNotEmpty
+                            backgroundImage:
+                                user.avatar != null && user.avatar!.isNotEmpty
                                 ? NetworkImage(user.avatar!)
-                                : const AssetImage('assets/images/avatar_default.png') as ImageProvider,
+                                : const AssetImage(
+                                        'assets/images/avatar_default.png',
+                                      )
+                                      as ImageProvider,
                           ),
                         ),
                       ),
@@ -86,11 +92,20 @@ class ProfileScreen extends StatelessWidget {
                             const SizedBox(height: 6),
                             Row(
                               children: [
-                                const Icon(Icons.phone, color: Colors.white70, size: 18),
+                                const Icon(
+                                  Icons.phone,
+                                  color: Colors.white70,
+                                  size: 18,
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  user.phone?.isNotEmpty == true ? user.phone! : 'Chưa có số điện thoại',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 15),
+                                  user.phone?.isNotEmpty == true
+                                      ? user.phone!
+                                      : 'Chưa có số điện thoại',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 15,
+                                  ),
                                 ),
                               ],
                             ),
@@ -98,7 +113,11 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
 
-                      const Icon(Icons.chevron_right, color: Colors.white, size: 36),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: Colors.white,
+                        size: 36,
+                      ),
                     ],
                   ),
                 ),
@@ -114,15 +133,36 @@ class ProfileScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => const MyPostsScreen()),
                 ),
               ),
-              _buildMenuItem(icon: Icons.favorite_border, title: 'Bài đăng yêu thích'),
-              _buildMenuItem(icon: Icons.calendar_today, title: 'Lịch hẹn xem phòng', badge: '31'),
+              _buildMenuItem(
+                icon: Icons.favorite_border,
+                title: 'Bài đăng yêu thích',
+              ),
+              _buildMenuItem(
+                icon: Icons.calendar_today,
+                title: 'Lịch hẹn xem phòng',
+                badge: '31',
+              ),
               _buildMenuItem(icon: Icons.receipt_long, title: 'Hoá đơn'),
               _buildMenuItem(icon: Icons.description, title: 'Hợp đồng'),
-              _buildMenuItem(icon: Icons.card_giftcard, title: 'Giới thiệu & nhận thưởng'),
-              _buildMenuItem(icon: Icons.policy, title: 'Điều khoản & chính sách'),
-              _buildMenuItem(icon: Icons.report_problem_outlined, title: 'Báo cáo sự cố'),
+              _buildMenuItem(
+                icon: Icons.card_giftcard,
+                title: 'Giới thiệu & nhận thưởng',
+              ),
+              _buildMenuItem(
+                icon: Icons.policy,
+                title: 'Điều khoản & chính sách',
+              ),
+              _buildMenuItem(
+                icon: Icons.report_problem_outlined,
+                title: 'Báo cáo sự cố',
+              ),
 
-              const Divider(height: 32, thickness: 1, indent: 16, endIndent: 16),
+              const Divider(
+                height: 32,
+                thickness: 1,
+                indent: 16,
+                endIndent: 16,
+              ),
 
               _buildMenuItem(
                 icon: Icons.logout,
@@ -135,20 +175,33 @@ class ProfileScreen extends StatelessWidget {
                       title: const Text('Đăng xuất'),
                       content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Hủy'),
+                        ),
                         TextButton(
                           onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Đăng xuất', style: TextStyle(color: Colors.red)),
+                          child: const Text(
+                            'Đăng xuất',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                       ],
                     ),
                   );
 
                   if (confirm == true) {
-                    await Provider.of<AuthProvider>(context, listen: false).logout();
+                    await Provider.of<AuthProvider>(
+                      context,
+                      listen: false,
+                    ).logout();
                     userProvider.clear();
                     if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/login',
+                        (route) => false,
+                      );
                     }
                   }
                 },
@@ -161,15 +214,22 @@ class ProfileScreen extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tính năng đang phát triển')),
+                      const SnackBar(
+                        content: Text('Tính năng đang phát triển'),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.delete_forever, color: Colors.red),
-                  label: const Text('Yêu cầu xoá tài khoản', style: TextStyle(color: Colors.red)),
+                  label: const Text(
+                    'Yêu cầu xoá tài khoản',
+                    style: TextStyle(color: Colors.red),
+                  ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.red),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -179,9 +239,15 @@ class ProfileScreen extends StatelessWidget {
               const Center(
                 child: Column(
                   children: [
-                    Text('© 2025 VINHNEST JSC', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    Text(
+                      '© 2025 VINHNEST JSC',
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
                     SizedBox(height: 4),
-                    Text('Phiên bản 1.0.0', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text(
+                      'Phiên bản 1.0.0',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
                   ],
                 ),
               ),
@@ -218,7 +284,11 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Text(
                 badge,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
             ),
           if (badge != null) const SizedBox(width: 8),
