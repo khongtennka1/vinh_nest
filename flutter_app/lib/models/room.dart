@@ -13,11 +13,16 @@ class Room {
   final String genderRequirement;
   final double price;
   final String pricingType;
+  final String deposit;
+  final String promotionalOffers;
+  final DateTime promotionalperiodStart;
+  final DateTime promotionalperiodEnd;
   final bool includesUtilities;
   final double area;
   final int capacity;
   final int currentResidents;
   final List<String> amenities;
+  final int parkingspaces;
   final List<String> furniture;
   final List<String> images;
   final String status;
@@ -41,6 +46,11 @@ class Room {
     required this.area,
     required this.capacity,
     required this.currentResidents,
+    required this.deposit,
+    required this.promotionalOffers,
+    required this.promotionalperiodStart,
+    required this.promotionalperiodEnd,
+    required this.parkingspaces,
     this.amenities = const [],
     this.furniture = const [],
     this.images = const [],
@@ -80,6 +90,15 @@ class Room {
       area: (data['area'] ?? 20).toDouble(),
       capacity: data['capacity'] ?? 2,
       currentResidents: data['currentResidents'] ?? 0,
+      deposit: data['deposit'] ?? '',
+      promotionalOffers: data['promotionalOffers'] ?? '',
+      promotionalperiodStart: data['promotionalperiodStart'] != null
+          ? _parseTimestamp(data['promotionalperiodStart'])
+          : DateTime.now(),
+      promotionalperiodEnd: data['promotionalperiodEnd'] != null
+          ? _parseTimestamp(data['promotionalperiodEnd'])
+          : DateTime.now(),
+      parkingspaces: data['parkingspaces'] ?? 0,    
       amenities: _toStringList(data['amenities']),
       furniture: _toStringList(data['furniture']),
       images: _toStringList(data['images']),
@@ -106,6 +125,11 @@ class Room {
       'area': area,
       'capacity': capacity,
       'currentResidents': currentResidents,
+      'deposit': deposit,
+      'promotionalOffers': promotionalOffers,
+      'promotionalperiodStart': Timestamp.fromDate(promotionalperiodStart),
+      'promotionalperiodEnd': Timestamp.fromDate(promotionalperiodEnd),
+      'parkingspaces': parkingspaces,
       'amenities': amenities,
       'furniture': furniture,
       'images': images,
