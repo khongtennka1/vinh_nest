@@ -28,7 +28,11 @@ dependencies:
   url_launcher: ^6.3.2
   http: ^1.1.0
   google_fonts: ^6.3.2
+<<<<<<< HEAD
   dotted_border: ^3.1.0
+=======
+  flutter_slidable: ^4.0.3
+>>>>>>> 3e709a82b91655f9cb4cbe0706fcf8e928e522df
 
 dev_dependencies:
   flutter_test:

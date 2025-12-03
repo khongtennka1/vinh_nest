@@ -5,6 +5,7 @@ class ChatMessage {
   final String senderId;
   final String text;
   final String? imageUrl;
+  final String type;
   final DateTime time;
 
   ChatMessage({
@@ -12,6 +13,7 @@ class ChatMessage {
     required this.senderId,
     required this.text,
     this.imageUrl,
+    required this.type,
     required this.time,
   });
 
@@ -26,6 +28,7 @@ class ChatMessage {
       senderId: (data['senderId'] as String?) ?? '',
       text: (data['text'] as String?) ?? '',
       imageUrl: data['imageUrl'] as String?,
+      type: (data['type'] as String?) ?? 'text',
       time: ts?.toDate() ?? DateTime.now(),
     );
   }
@@ -35,6 +38,7 @@ class ChatMessage {
       'senderId': senderId,
       'text': text,
       'imageUrl': imageUrl,
+      'type': type,
       'time': Timestamp.fromDate(time),
     };
   }

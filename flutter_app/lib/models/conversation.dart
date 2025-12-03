@@ -1,13 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Conversation {
-  final String id; // conversationId (doc.id)
-  final String peerId; // id của người kia
-  final String name; // peerName
+  final String id;
+  final String peerId;
+  final String name;
   final String lastMessage;
-  final DateTime time; // lastMessageTime
-  final int unread; // số tin chưa đọc của currentUser
-  final String avatarUrl; // peerAvatarUrl
+  final DateTime time;
+  final int unread;
+  final String avatarUrl;
+  final bool archived; // ✅ thêm
 
   Conversation({
     required this.id,
@@ -17,6 +18,7 @@ class Conversation {
     required this.time,
     required this.unread,
     required this.avatarUrl,
+    this.archived = false,
   });
 
   factory Conversation.fromFirestore(
@@ -35,6 +37,7 @@ class Conversation {
       avatarUrl:
           (data['peerAvatarUrl'] as String?) ??
           'https://i.pravatar.cc/150?u=${doc.id}',
+      archived: (data['archived'] as bool?) ?? false,
     );
   }
 
@@ -46,6 +49,7 @@ class Conversation {
       'lastMessage': lastMessage,
       'lastMessageTime': Timestamp.fromDate(time),
       'unread': unread,
+      'archived': archived,
     };
   }
 }

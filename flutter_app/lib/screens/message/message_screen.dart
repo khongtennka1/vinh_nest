@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:room_rental_app/models/conversation.dart';
 import 'package:room_rental_app/screens/message/chat_detail_screen.dart';
 
@@ -116,90 +117,162 @@ class _MessageScreenState extends State<MessageScreen> {
                   itemBuilder: (context, index) {
                     final c = filtered[index];
 
-                    return ListTile(
-                      onTap: () async {
-                        // reset unread của currentUser
-                        await FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(currentUserId)
-                            .collection('conversations')
-                            .doc(c.id)
-                            .update({'unread': 0});
+                    return Slidable(
+                      key: ValueKey(c.id),
+                      // Vuốt sang trái để hiện action
+                      endActionPane: ActionPane(
+                        motion: const ScrollMotion(),
+                        children: [
+                          // Đánh dấu chưa đọc
+                          SlidableAction(
+                            onPressed: (ctx) async {
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(currentUserId)
+                                  .collection('conversations')
+                                  .doc(c.id)
+                                  .update({
+                                    // tuỳ bạn, ở đây mình để = 1 để hiện badge
+                                    'unread': 1,
+                                  });
+                            },
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            icon: Icons.markunread,
+                            label: 'Chưa đọc',
+                          ),
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ChatDetailScreen(
-                              userName: c.name,
-                              conversationId: c.id,
-                              peerId: c.peerId,
-                            ),
-                          ),
-                        );
-                      },
-                      leading: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundImage: NetworkImage(c.avatarUrl),
-                          ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
+                          // Xoá cuộc trò chuyện
+                          SlidableAction(
+                            onPressed: (ctx) async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text('Xoá cuộc trò chuyện'),
+                                    content: Text(
+                                      'Bạn có chắc muốn xoá cuộc trò chuyện với "${c.name}" không?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: const Text('Huỷ'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: const Text(
+                                          'Xoá',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              if (confirm == true) {
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(currentUserId)
+                                    .collection('conversations')
+                                    .doc(c.id)
+                                    .delete();
+                              }
+                            },
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            icon: Icons.delete,
+                            label: 'Xoá',
                           ),
                         ],
                       ),
-                      title: Text(
-                        c.name,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        c.lastMessage,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _formatTime(c.time),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
+                      child: ListTile(
+                        onTap: () async {
+                          // reset unread của currentUser
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(currentUserId)
+                              .collection('conversations')
+                              .doc(c.id)
+                              .update({'unread': 0});
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatDetailScreen(
+                                userName: c.name,
+                                conversationId: c.id,
+                                peerId: c.peerId,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          if (c.unread > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${c.unread}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
+                          );
+                        },
+                        leading: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 24,
+                              backgroundImage: NetworkImage(c.avatarUrl),
+                            ),
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
                             ),
-                        ],
+                          ],
+                        ),
+                        title: Text(
+                          c.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          c.lastMessage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _formatTime(c.time),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            if (c.unread > 0)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${c.unread}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     );
                   },
