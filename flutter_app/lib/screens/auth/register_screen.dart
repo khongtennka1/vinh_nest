@@ -1,31 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/auth_provider.dart';
-import 'register_screen.dart';
+import '../../providers/auth_provider.dart';
+import 'login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  String _selectedRole = 'user';
 
-  bool _rememberMe = false;
   bool _showPassword = false;
+  bool _showConfirmPassword = false;
 
   final Color _accent = const Color(0xFFFF7043);
   final Color _accentDark = const Color(0xFFDD4B2B);
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // ignore: unused_local_variable
-    final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
     final titleStyle = GoogleFonts.montserrat(
@@ -57,16 +67,14 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
             child: Column(
               children: [
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
 
-                // Logo + name
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // logo circle
                     Container(
                       width: 84,
                       height: 84,
@@ -90,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    // title
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -102,12 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
-                // Card with form
                 Container(
                   width: double.infinity,
-                  constraints: BoxConstraints(minHeight: size.height * 0.5),
+                  constraints: BoxConstraints(minHeight: size.height * 0.55),
                   child: Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
@@ -121,28 +127,94 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Form(
                         key: _formKey,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             const SizedBox(height: 8),
                             Text(
-                              'Đăng nhập',
+                              'Đăng ký',
                               style: GoogleFonts.montserrat(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black87,
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 8),
                             Text(
-                              'Đăng nhập để tiếp tục sử dụng VinhNest',
+                              'Tạo tài khoản để bắt đầu sử dụng VinhNest',
                               style: GoogleFonts.montserrat(
                                 fontSize: 14,
                                 color: Colors.black54,
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 18),
 
-                            // Email field
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Bạn là:",
+                                  style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600),
+                                ),
+                                Row(
+                                  children: [
+                                    Radio(
+                                      value: 'user',
+                                      groupValue: _selectedRole,
+                                      onChanged: (value) {
+                                        setState(() => _selectedRole = value!);
+                                      },
+                                    ),
+                                    const Text("Người thuê"),
+                                    Radio(
+                                      value: 'landlord',
+                                      groupValue: _selectedRole,
+                                      onChanged: (value) {
+                                        setState(() => _selectedRole = value!);
+                                      },
+                                    ),
+                                    const Text("Chủ trọ"),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+
+                            TextFormField(
+                              controller: _nameController,
+                              style: inputTextStyle,
+                              decoration: InputDecoration(
+                                labelText: "Họ và tên",
+                                hintText: "Nhập họ tên của bạn",
+                                labelStyle: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey.shade100,
+                                prefixIcon: const Icon(
+                                  Icons.person_outline,
+                                  color: Colors.grey,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 12,
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Vui lòng nhập họ tên";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
@@ -153,10 +225,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 labelStyle: GoogleFonts.montserrat(
                                   fontSize: 14,
                                   color: Colors.black54,
-                                ),
-                                hintStyle: GoogleFonts.montserrat(
-                                  fontSize: 14,
-                                  color: Colors.black38,
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade100,
@@ -169,33 +237,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 18,
+                                  vertical: 16,
                                   horizontal: 12,
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return "Vui lòng nhập email";
                                 }
                                 if (!RegExp(
                                   r'^[^@]+@[^@]+\.[^@]+',
-                                ).hasMatch(value)) {
+                                ).hasMatch(value.trim())) {
                                   return "Email không hợp lệ";
                                 }
                                 return null;
                               },
                             ),
+                            const SizedBox(height: 12),
 
-                            const SizedBox(height: 14),
-
-                            // Password
                             TextFormField(
                               controller: _passwordController,
                               obscureText: !_showPassword,
                               style: inputTextStyle,
                               decoration: InputDecoration(
                                 labelText: "Mật khẩu",
-                                hintText: "Nhập mật khẩu",
+                                hintText: "Tối thiểu 6 ký tự",
                                 labelStyle: GoogleFonts.montserrat(
                                   fontSize: 14,
                                   color: Colors.black54,
@@ -222,7 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 18,
+                                  vertical: 16,
                                   horizontal: 12,
                                 ),
                               ),
@@ -236,72 +302,60 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return null;
                               },
                             ),
-
                             const SizedBox(height: 12),
 
-                            // remember + forgot
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => setState(
-                                        () => _rememberMe = !_rememberMe,
-                                      ),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: _rememberMe
-                                              ? _accent
-                                              : Colors.transparent,
-                                          border: Border.all(
-                                            color: _rememberMe
-                                                ? _accentDark
-                                                : Colors.grey.shade400,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        width: 20,
-                                        height: 20,
-                                        child: _rememberMe
-                                            ? const Icon(
-                                                Icons.check,
-                                                size: 16,
-                                                color: Colors.white,
-                                              )
-                                            : null,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Ghi nhớ đăng nhập',
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 14,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ],
+                            TextFormField(
+                              controller: _confirmPasswordController,
+                              obscureText: !_showConfirmPassword,
+                              style: inputTextStyle,
+                              decoration: InputDecoration(
+                                labelText: "Xác nhận mật khẩu",
+                                hintText: "Nhập lại mật khẩu",
+                                labelStyle: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  color: Colors.black54,
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    // TODO: forgot password flow
-                                  },
-                                  child: Text(
-                                    'Quên mật khẩu?',
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 14,
-                                      color: _accentDark,
-                                    ),
+                                filled: true,
+                                fillColor: Colors.grey.shade100,
+                                prefixIcon: const Icon(
+                                  Icons.lock,
+                                  color: Colors.grey,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _showConfirmPassword
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Colors.grey,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _showConfirmPassword =
+                                        !_showConfirmPassword,
                                   ),
                                 ),
-                              ],
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 12,
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Vui lòng xác nhận mật khẩu";
+                                }
+                                if (value.trim() !=
+                                    _passwordController.text.trim()) {
+                                  return "Mật khẩu không khớp";
+                                }
+                                return null;
+                              },
                             ),
 
                             const SizedBox(height: 18),
 
-                            // Login button (uses Consumer)
                             Consumer<AuthProvider>(
                               builder: (context, authProvider, child) {
                                 return SizedBox(
@@ -312,28 +366,52 @@ class _LoginScreenState extends State<LoginScreen> {
                                         : () async {
                                             if (_formKey.currentState!
                                                 .validate()) {
+                                              final password =
+                                                  _passwordController.text
+                                                      .trim();
+                                              final confirmPassword =
+                                                  _confirmPasswordController
+                                                      .text
+                                                      .trim();
+
                                               bool success = await authProvider
-                                                  .login(
+                                                  .register(
+                                                    _nameController.text.trim(),
                                                     _emailController.text
                                                         .trim(),
-                                                    _passwordController.text
-                                                        .trim(),
+                                                    password,
+                                                    confirmPassword,
+                                                    role: _selectedRole,
                                                   );
+
                                               if (success && context.mounted) {
-                                                Navigator.pushReplacementNamed(
+                                                ScaffoldMessenger.of(
                                                   context,
-                                                  '/main',
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Đăng ký thành công! Hãy đăng nhập.',
+                                                    ),
+                                                  ),
+                                                );
+                                                Navigator.pushReplacement(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const LoginScreen(),
+                                                  ),
                                                 );
                                               } else if (context.mounted) {
+                                                final error =
+                                                    context
+                                                        .read<AuthProvider>()
+                                                        .errorMessage ??
+                                                    'Đăng ký thất bại.';
                                                 ScaffoldMessenger.of(
                                                   context,
                                                 ).showSnackBar(
                                                   SnackBar(
-                                                    content: Text(
-                                                      authProvider
-                                                              .errorMessage ??
-                                                          'Đăng nhập thất bại',
-                                                    ),
+                                                    content: Text(error),
                                                   ),
                                                 );
                                               }
@@ -360,7 +438,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             ),
                                           )
                                         : Text(
-                                            'Đăng nhập',
+                                            'Đăng ký',
                                             style: GoogleFonts.montserrat(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w700,
@@ -371,9 +449,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             ),
 
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 14),
 
-                            // Divider with OR
                             Row(
                               children: [
                                 Expanded(
@@ -397,9 +474,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
 
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 12),
 
-                            // Social / quick login placeholders
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
@@ -407,37 +483,27 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Icons.phone_android,
                                   'OTP',
                                   _accent,
-                                  () {
-                                    // TODO: phone auth
-                                  },
                                 ),
                                 _socialButton(
                                   Icons.facebook,
                                   'Facebook',
                                   Colors.blue.shade800,
-                                  () {
-                                    // TODO: facebook login
-                                  },
                                 ),
                                 _socialButton(
                                   Icons.g_mobiledata,
                                   'Google',
                                   Colors.red.shade700,
-                                  () {
-                                    // TODO: google sign-in
-                                  },
                                 ),
                               ],
                             ),
 
-                            const SizedBox(height: 22),
+                            const SizedBox(height: 18),
 
-                            // Register row
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Chưa có tài khoản?',
+                                  'Đã có tài khoản?',
                                   style: GoogleFonts.montserrat(
                                     fontSize: 14,
                                     color: Colors.black54,
@@ -445,16 +511,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 TextButton(
                                   onPressed: () {
-                                    Navigator.push(
+                                    Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            const RegisterScreen(),
+                                            const LoginScreen(),
                                       ),
                                     );
                                   },
                                   child: Text(
-                                    'Đăng ký ngay',
+                                    'Đăng nhập ngay',
                                     style: GoogleFonts.montserrat(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
@@ -471,17 +537,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 18),
-                // small footer
+                const SizedBox(height: 14),
+
                 Text(
-                  'Bằng việc đăng nhập, bạn đồng ý với Điều khoản & Chính sách',
+                  'Bằng việc đăng ký, bạn đồng ý với Điều khoản & Chính sách',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(
                     fontSize: 12,
                     color: Colors.white70,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -490,39 +556,31 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _socialButton(
-    IconData icon,
-    String label,
-    Color bg,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Center(child: Icon(icon, color: bg, size: 26)),
+  Widget _socialButton(IconData icon, String label, Color bg) {
+    return Column(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70),
-          ),
-        ],
-      ),
+          child: Center(child: Icon(icon, color: bg, size: 26)),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70),
+        ),
+      ],
     );
   }
 }

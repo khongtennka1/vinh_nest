@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/users.dart';
 
 class AuthProvider with ChangeNotifier {
   String? _errorMessage;
@@ -17,7 +16,7 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _currentUser != null;
 
-  Future<bool> login(String email, String password) async {
+  Future<Map<String, dynamic>?> login(String email, String password) async {
   _isLoading = true;
   _errorMessage = null;
   notifyListeners();
@@ -28,17 +27,37 @@ class AuthProvider with ChangeNotifier {
       password: password.trim(),
     );
 
-    _currentUser = userCredential.user;   
+    _currentUser = userCredential.user;
+
     await _storage.write(key: 'uid', value: _currentUser!.uid);
+
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentUser!.uid)
+        .get();
+
+    if (!userDoc.exists) {
+      _errorMessage = "Không tìm thấy dữ liệu người dùng!";
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+
+    String role = userDoc.get("role");
 
     _isLoading = false;
     notifyListeners();
-    return true;
+
+    return {
+      "success": true,
+      "role": role,
+      "uid": _currentUser!.uid,
+    };
   } catch (e) {
     _errorMessage = _handleAuthError(e);
     _isLoading = false;
     notifyListeners();
-    return false;
+    return null;
   }
 }
 
@@ -49,6 +68,7 @@ class AuthProvider with ChangeNotifier {
   String password,
   String confirmPassword, {
   String? phone,
+  required String role,
 }) async {
   _isLoading = true;
   _errorMessage = null;
@@ -75,6 +95,7 @@ class AuthProvider with ChangeNotifier {
       'name': name.trim(),
       'email': email.trim(),
       'phone': phone?.trim(),
+      'role': role,
       'createdAt': FieldValue.serverTimestamp(),
     });
 

@@ -1,61 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/room_provider.dart';
-import '../models/hostel.dart';
-import '../models/address.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../ui/components/search_bar.dart';
-import '../ui/components/feature_button.dart';  
-import '../ui/components/area_card.dart';
-import '../ui/components/room_post_card.dart';
-import '../screens/room_detail_screen.dart';
+import 'package:room_rental_app/models/address.dart';
+import 'package:room_rental_app/models/hostel.dart';
+import 'package:room_rental_app/providers/room_provider.dart';
+import 'package:room_rental_app/screens/room_detail_screen.dart';
+import 'package:room_rental_app/ui/components/area_card.dart';
+import 'package:room_rental_app/ui/components/feature_button.dart';
+import 'package:room_rental_app/ui/components/room_post_card.dart';
+import 'package:room_rental_app/ui/components/search_bar.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   final List<Map<String, String>> popularAreas = const [
     {
       'name': 'Trường Vinh',
-      'image': 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=800'
+      'image':
+          'https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=800',
     },
     {
       'name': 'Thành Vinh',
-      'image': 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=800'
+      'image':
+          'https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=800',
     },
     {
       'name': 'Vinh Hưng',
-      'image': 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=800'
+      'image':
+          'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=800',
     },
     {
       'name': 'Vinh Phú',
-      'image': 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800'
+      'image':
+          'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800',
     },
     {
       'name': 'Vinh Lộc',
-      'image': 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800'
+      'image':
+          'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800',
     },
     {
       'name': 'Cửa Lò',
-      'image': 'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?q=80&w=800'
+      'image':
+          'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?q=80&w=800',
     },
   ];
 
   Map<String, dynamic> _convertMap(dynamic data) {
-  if (data is! Map<String, dynamic>) return {};
-  final result = <String, dynamic>{};
-  data.forEach((key, value) {
-    if (value is Timestamp) {
-      result[key] = value.toDate().toIso8601String();
-    } else if (value is List) {
-      result[key] = value.map((e) {
-        if (e is Timestamp) return e.toDate().toIso8601String();
-        return e.toString();
-      }).toList();
-    } else {
-      result[key] = value;
-    }
-  });
-  return result;
-}
+    if (data is! Map<String, dynamic>) return {};
+    final result = <String, dynamic>{};
+    data.forEach((key, value) {
+      if (value is Timestamp) {
+        result[key] = value.toDate().toIso8601String();
+      } else if (value is List) {
+        result[key] = value.map((e) {
+          if (e is Timestamp) return e.toDate().toIso8601String();
+          return e.toString();
+        }).toList();
+      } else {
+        result[key] = value;
+      }
+    });
+    return result;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'VINHNEST ĐỒNG HÀNH CÙNG BẠN',
+                            'Rentify ĐỒNG HÀNH CÙNG BẠN',
                             style: TextStyle(color: Colors.white, fontSize: 14),
                           ),
                           SizedBox(height: 4),
@@ -107,7 +114,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Khi thuê phòng qua App VinhNest',
+                            'Khi thuê phòng qua App Rentify',
                             style: TextStyle(color: Colors.white, fontSize: 13),
                           ),
                         ],
@@ -165,7 +172,10 @@ class HomeScreen extends StatelessWidget {
                     SizedBox(width: 8),
                     Text(
                       'Khám phá',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -192,16 +202,26 @@ class HomeScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    Icon(Icons.apartment, color: const Color.fromARGB(255, 134, 95, 36), size: 24),
+                    Icon(
+                      Icons.apartment,
+                      color: const Color.fromARGB(255, 134, 95, 36),
+                      size: 24,
+                    ),
                     SizedBox(width: 8),
                     Text(
-                      'Đối tác VinhNest',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      'Đối tác Rentify',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Spacer(),
                     Text(
                       'Xem thêm',
-                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -210,7 +230,10 @@ class HomeScreen extends StatelessWidget {
               SizedBox(height: 12),
 
               StreamBuilder<List<Map<String, dynamic>>>(
-                stream: Provider.of<RoomProvider>(context, listen: false).getAvailableRoomPosts(),
+                stream: Provider.of<RoomProvider>(
+                  context,
+                  listen: false,
+                ).getAvailableRoomPosts(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text('Lỗi: ${snapshot.error}'));
@@ -248,6 +271,7 @@ class HomeScreen extends StatelessWidget {
                               builder: (_) => RoomDetailScreen(
                                 room: _convertMap({
                                   'id': room.id,
+                                  'ownerId': room.ownerId,
                                   'title': room.title,
                                   'roomNumber': room.roomNumber,
                                   'price': room.price,
@@ -258,6 +282,8 @@ class HomeScreen extends StatelessWidget {
                                   'capacity': room.capacity,
                                   'createdAt': room.createdAt,
                                   'updatedAt': room.updatedAt,
+                                  'amenities': room.amenities,
+                                  'furniture': room.furniture,
                                 }),
                                 roomId: room.id,
                               ),

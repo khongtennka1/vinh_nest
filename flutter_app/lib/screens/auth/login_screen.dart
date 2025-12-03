@@ -1,37 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/auth_provider.dart';
-import 'login_screen.dart';
+import '../../providers/auth_provider.dart';
+import 'register_screen.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
 
+  bool _rememberMe = false;
   bool _showPassword = false;
-  bool _showConfirmPassword = false;
 
   final Color _accent = const Color(0xFFFF7043);
   final Color _accentDark = const Color(0xFFDD4B2B);
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,17 +48,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [_accent.withOpacity(0.95), _accentDark],
+            colors: [_accent.withAlpha(20), _accentDark],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: Column(
               children: [
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
 
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -82,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.14),
+                            color: Colors.black.withAlpha(36),
                             blurRadius: 12,
                             offset: const Offset(0, 6),
                           ),
@@ -108,12 +97,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
-                // Card with form
                 Container(
                   width: double.infinity,
-                  constraints: BoxConstraints(minHeight: size.height * 0.55),
+                  constraints: BoxConstraints(minHeight: size.height * 0.5),
                   child: Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
@@ -127,65 +115,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       child: Form(
                         key: _formKey,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             const SizedBox(height: 8),
                             Text(
-                              'Đăng ký',
+                              'Đăng nhập',
                               style: GoogleFonts.montserrat(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black87,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
                             Text(
-                              'Tạo tài khoản để bắt đầu sử dụng VinhNest',
+                              'Đăng nhập để tiếp tục sử dụng Rentify',
                               style: GoogleFonts.montserrat(
                                 fontSize: 14,
                                 color: Colors.black54,
                               ),
                             ),
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 20),
 
-                            // Name
-                            TextFormField(
-                              controller: _nameController,
-                              style: inputTextStyle,
-                              decoration: InputDecoration(
-                                labelText: "Họ và tên",
-                                hintText: "Nhập họ tên của bạn",
-                                labelStyle: GoogleFonts.montserrat(
-                                  fontSize: 14,
-                                  color: Colors.black54,
-                                ),
-                                filled: true,
-                                fillColor: Colors.grey.shade100,
-                                prefixIcon: const Icon(
-                                  Icons.person_outline,
-                                  color: Colors.grey,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                  horizontal: 12,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return "Vui lòng nhập họ tên";
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 12),
-
-                            // Email
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
@@ -196,6 +146,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 labelStyle: GoogleFonts.montserrat(
                                   fontSize: 14,
                                   color: Colors.black54,
+                                ),
+                                hintStyle: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  color: Colors.black38,
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey.shade100,
@@ -208,32 +162,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                                  vertical: 18,
                                   horizontal: 12,
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
+                                if (value == null || value.isEmpty) {
                                   return "Vui lòng nhập email";
                                 }
                                 if (!RegExp(
                                   r'^[^@]+@[^@]+\.[^@]+',
-                                ).hasMatch(value.trim())) {
+                                ).hasMatch(value)) {
                                   return "Email không hợp lệ";
                                 }
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 12),
 
-                            // Password
+                            const SizedBox(height: 14),
+
                             TextFormField(
                               controller: _passwordController,
                               obscureText: !_showPassword,
                               style: inputTextStyle,
                               decoration: InputDecoration(
                                 labelText: "Mật khẩu",
-                                hintText: "Tối thiểu 6 ký tự",
+                                hintText: "Nhập mật khẩu",
                                 labelStyle: GoogleFonts.montserrat(
                                   fontSize: 14,
                                   color: Colors.black54,
@@ -260,7 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                                  vertical: 18,
                                   horizontal: 12,
                                 ),
                               ),
@@ -274,62 +228,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 return null;
                               },
                             ),
+
                             const SizedBox(height: 12),
 
-                            // Confirm password
-                            TextFormField(
-                              controller: _confirmPasswordController,
-                              obscureText: !_showConfirmPassword,
-                              style: inputTextStyle,
-                              decoration: InputDecoration(
-                                labelText: "Xác nhận mật khẩu",
-                                hintText: "Nhập lại mật khẩu",
-                                labelStyle: GoogleFonts.montserrat(
-                                  fontSize: 14,
-                                  color: Colors.black54,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => setState(
+                                        () => _rememberMe = !_rememberMe,
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: _rememberMe
+                                              ? _accent
+                                              : Colors.transparent,
+                                          border: Border.all(
+                                            color: _rememberMe
+                                                ? _accentDark
+                                                : Colors.grey.shade400,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        width: 20,
+                                        height: 20,
+                                        child: _rememberMe
+                                            ? const Icon(
+                                                Icons.check,
+                                                size: 16,
+                                                color: Colors.white,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Ghi nhớ đăng nhập',
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                filled: true,
-                                fillColor: Colors.grey.shade100,
-                                prefixIcon: const Icon(
-                                  Icons.lock,
-                                  color: Colors.grey,
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _showConfirmPassword
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                    color: Colors.grey,
+                                TextButton(
+                                  onPressed: () {
+                                  },
+                                  child: Text(
+                                    'Quên mật khẩu?',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 14,
+                                      color: _accentDark,
+                                    ),
                                   ),
-                                  onPressed: () => setState(
-                                    () => _showConfirmPassword =
-                                        !_showConfirmPassword,
-                                  ),
                                 ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                  horizontal: 12,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Vui lòng xác nhận mật khẩu";
-                                }
-                                if (value.trim() !=
-                                    _passwordController.text.trim()) {
-                                  return "Mật khẩu không khớp";
-                                }
-                                return null;
-                              },
+                              ],
                             ),
 
                             const SizedBox(height: 18),
 
-                            // Register button
                             Consumer<AuthProvider>(
                               builder: (context, authProvider, child) {
                                 return SizedBox(
@@ -340,57 +301,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         : () async {
                                             if (_formKey.currentState!
                                                 .validate()) {
-                                              final password =
-                                                  _passwordController.text
-                                                      .trim();
-                                              final confirmPassword =
-                                                  _confirmPasswordController
-                                                      .text
-                                                      .trim();
+                                                  final result = await authProvider.login(
+                                              _emailController.text.trim(),
+                                              _passwordController.text.trim(),
+                                              );
 
-                                              bool success = await authProvider
-                                                  .register(
-                                                    _nameController.text.trim(),
-                                                    _emailController.text
-                                                        .trim(),
-                                                    password,
-                                                    confirmPassword,
-                                                  );
+                                              if (result != null && result["success"] == true && context.mounted) {
+                                                String role = result["role"];
 
-                                              if (success && context.mounted) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
+                                                if (context.mounted) {
+                                                  if (role == 'user') {
+                                                    Navigator.pushReplacementNamed(
+                                                      context,
+                                                      '/main',
+                                                    );
+                                                  } else if (role == 'landlord') {
+                                                    Navigator.pushReplacementNamed(
+                                                      context,
+                                                      '/landlord_main',
+                                                    );
+                                                  } else {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          'Vai trò không xác định: $role',
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                              } else  if (context.mounted){  
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
                                                     content: Text(
-                                                      'Đăng ký thành công! Hãy đăng nhập.',
+                                                      authProvider.errorMessage ??
+                                                          'Đăng nhập thất bại. Vui lòng thử lại.',
                                                     ),
                                                   ),
                                                 );
-                                                Navigator.pushReplacement(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const LoginScreen(),
-                                                  ),
-                                                );
-                                              } else if (context.mounted) {
-                                                final error =
-                                                    context
-                                                        .read<AuthProvider>()
-                                                        .errorMessage ??
-                                                    'Đăng ký thất bại.';
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(error),
-                                                  ),
-                                                );
-                                              }
+                                                }
                                             }
                                           },
-                                    style: ElevatedButton.styleFrom(
+                                      style: ElevatedButton.styleFrom(
                                       backgroundColor: _accent,
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(
@@ -411,7 +363,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             ),
                                           )
                                         : Text(
-                                            'Đăng ký',
+                                            'Đăng nhập',
                                             style: GoogleFonts.montserrat(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w700,
@@ -422,9 +374,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               },
                             ),
 
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 18),
 
-                            // OR divider
                             Row(
                               children: [
                                 Expanded(
@@ -448,9 +399,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ],
                             ),
 
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 14),
 
-                            // Social quick register (placeholders)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
@@ -458,28 +408,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   Icons.phone_android,
                                   'OTP',
                                   _accent,
+                                  () {
+                                  },
                                 ),
                                 _socialButton(
                                   Icons.facebook,
                                   'Facebook',
                                   Colors.blue.shade800,
+                                  () {
+                                  },
                                 ),
                                 _socialButton(
                                   Icons.g_mobiledata,
                                   'Google',
                                   Colors.red.shade700,
+                                  () {
+                                  },
                                 ),
                               ],
                             ),
 
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 22),
 
-                            // Already have account
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Đã có tài khoản?',
+                                  'Chưa có tài khoản?',
                                   style: GoogleFonts.montserrat(
                                     fontSize: 14,
                                     color: Colors.black54,
@@ -487,16 +442,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 TextButton(
                                   onPressed: () {
-                                    Navigator.pushReplacement(
+                                    Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            const LoginScreen(),
+                                            const RegisterScreen(),
                                       ),
                                     );
                                   },
                                   child: Text(
-                                    'Đăng nhập ngay',
+                                    'Đăng ký ngay',
                                     style: GoogleFonts.montserrat(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
@@ -513,18 +468,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 14),
-
-                // footer
+                const SizedBox(height: 18),
                 Text(
-                  'Bằng việc đăng ký, bạn đồng ý với Điều khoản & Chính sách',
+                  'Bằng việc đăng nhập, bạn đồng ý với Điều khoản & Chính sách',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(
                     fontSize: 12,
                     color: Colors.white70,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -533,31 +486,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _socialButton(IconData icon, String label, Color bg) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
+  Widget _socialButton(
+    IconData icon,
+    String label,
+    Color bg,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(20),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(child: Icon(icon, color: bg, size: 26)),
           ),
-          child: Center(child: Icon(icon, color: bg, size: 26)),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70),
-        ),
-      ],
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70),
+          ),
+        ],
+      ),
     );
   }
 }

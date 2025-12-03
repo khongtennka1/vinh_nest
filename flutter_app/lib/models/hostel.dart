@@ -7,25 +7,33 @@ class Hostel {
   final String addressId;
   final String? description;
   final List<String> facilities;
+  final List<String> interiors;
   final List<String> images;
+  final int numberParkingSpaces;
+  final List<String> services;
+  final List<String> roomTypes;
   final DateTime createdAt;
   final DateTime? updatedAt;
-  final String? status;
-  
+  final String status;
+
   Hostel({
     required this.id,
     required this.ownerId,
     required this.name,
     required this.addressId,
+    required this.services,
+    required this.numberParkingSpaces,
+    required this.createdAt,
+    required this.roomTypes,
     this.description,
     this.facilities = const [],
+    this.interiors = const[],
     this.images = const [],
-    required this.createdAt,
     this.updatedAt,
-    this.status,
+    this.status = 'active',
   });
 
-  static List<String> _toStringList(dynamic value) {
+  static List<String> _toList(dynamic value) {
     if (value == null) return [];
     if (value is List) return value.map((e) => e.toString()).toList();
     if (value is String) return [value];
@@ -33,9 +41,9 @@ class Hostel {
   }
 
   factory Hostel.fromMap(Map<String, dynamic> data, String id) {
-    DateTime _parseTimestamp(dynamic timestamp) {
-      if (timestamp is Timestamp) return timestamp.toDate();
-      if (timestamp is String) return DateTime.parse(timestamp);
+    DateTime parseTime(dynamic t) {
+      if (t is Timestamp) return t.toDate();
+      if (t is String) return DateTime.parse(t);
       return DateTime.now();
     }
 
@@ -45,24 +53,33 @@ class Hostel {
       name: data['name'] ?? '',
       addressId: data['addressId'] ?? '',
       description: data['description'],
-      facilities: _toStringList(data['facilities']),
-      images: _toStringList(data['images']),
-      createdAt: _parseTimestamp(data['createdAt']),
-      updatedAt:
-          data['updatedAt'] != null ? _parseTimestamp(data['updatedAt']) : null,
-      status: data['status'],
+      services: _toList(data['services']),
+      numberParkingSpaces: data['number_parking_spaces'] ?? 0,
+      facilities: _toList(data['facilities']),
+      interiors: _toList(data['interiors']),
+      roomTypes: _toList(data['roomTypes']),
+      images: _toList(data['images']),
+      createdAt: parseTime(data['createdAt']),
+      updatedAt: data['updatedAt'] != null ? parseTime(data['updatedAt']) : null,
+      status: data['status'] ?? 'active',
     );
   }
 
-  Map<String, dynamic> toMap() => {
-        'ownerId': ownerId,
-        'name': name,
-        'addressId': addressId,
-        'description': description,
-        'facilities': facilities,
-        'images': images,
-        'createdAt': Timestamp.fromDate(createdAt),
-        'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
-        'status': status,
-      };
+  Map<String, dynamic> toMap() {
+    return {
+      'ownerId': ownerId,
+      'name': name,
+      'addressId': addressId,
+      'description': description,
+      'facilities': facilities,
+      'interiors': interiors,
+      'services': services,
+      'roomTypes': roomTypes,
+      'number_parking_spaces': numberParkingSpaces,
+      'images': images,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'status': status,
+    };
+  }
 }

@@ -2,27 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
-import 'package:room_rental_app/screens/create_post_screen.dart';
-import 'package:room_rental_app/screens/landlord/landlord_create_post_screen.dart';
-import 'package:room_rental_app/screens/main_app_screen.dart';
+import 'package:room_rental_app/providers/create_hostel_provider.dart';
+import 'package:room_rental_app/providers/create_post_provider.dart';
+import 'package:room_rental_app/screens/auth/login_screen.dart';
+import 'package:room_rental_app/screens/auth/register_screen.dart';
+import 'package:room_rental_app/screens/landlord/create_hostel_screen.dart';
+import 'package:room_rental_app/screens/landlord/main_app_screen.dart';
+import 'package:room_rental_app/screens/user/main_app_screen.dart';
+import 'package:room_rental_app/screens/user/room/create_post_screen.dart';
+
 import 'firebase_options.dart';
-
-//Authentication and User Management
 import 'providers/auth_provider.dart';
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
-
-//Welcome Screen
 import 'screens/welcome_screen.dart';
-
-//User Data and Room Management
 import 'providers/user_provider.dart';
 import 'providers/room_provider.dart';
-import 'providers/create_post_provider.dart';
-
-//Landlord Data and Room Management
-import 'providers/landlord/create_post_provider.dart';
-
+// import 'providers/landlord_create_post_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,7 +43,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CreatePostProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()..loadCurrentUser()),
         //Landlord
-        ChangeNotifierProvider(create: (_) => LandlordCreatePostProvider()),
+        // ChangeNotifierProvider(create: (_) => LandlordCreatePostProvider()),
+        ChangeNotifierProvider(create: (_) => CreateHostelProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -65,7 +60,8 @@ class MyApp extends StatelessWidget {
           '/register': (context) => const RegisterScreen(),
           '/main': (context) => const MainAppScreen(),
           '/create_post': (context) => const CreatePostScreen(),
-          '/landlord_create_post': (context) => const LandlordCreatePostScreen(),
+          '/landlord_main': (context) => const LandlordMainAppScreen(),
+          '/create_hostel': (context) => const CreateHostelScreen()
         },
       ),
     );

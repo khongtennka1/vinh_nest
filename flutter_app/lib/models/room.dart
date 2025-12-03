@@ -13,16 +13,11 @@ class Room {
   final String genderRequirement;
   final double price;
   final String pricingType;
-  final String deposit;
-  final String promotionalOffers;
-  final DateTime promotionalperiodStart;
-  final DateTime promotionalperiodEnd;
   final bool includesUtilities;
   final double area;
   final int capacity;
   final int currentResidents;
   final List<String> amenities;
-  final int parkingspaces;
   final List<String> furniture;
   final List<String> images;
   final String status;
@@ -46,11 +41,6 @@ class Room {
     required this.area,
     required this.capacity,
     required this.currentResidents,
-    required this.deposit,
-    required this.promotionalOffers,
-    required this.promotionalperiodStart,
-    required this.promotionalperiodEnd,
-    required this.parkingspaces,
     this.amenities = const [],
     this.furniture = const [],
     this.images = const [],
@@ -58,6 +48,56 @@ class Room {
     required this.createdAt,
     this.updatedAt,
   });
+
+  Room copyWith({
+    String? id,
+    String? hostelId,
+    String? ownerId,
+    String? title,
+    String? roomType,
+    int? floor,
+    String? address,
+    String? roomNumber,
+    String? description,
+    String? genderRequirement,
+    double? price,
+    String? pricingType,
+    bool? includesUtilities,
+    double? area,
+    int? capacity,
+    int? currentResidents,
+    List<String>? amenities,
+    List<String>? furniture,
+    List<String>? images,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Room(
+      id: id ?? this.id,
+      hostelId: hostelId ?? this.hostelId,
+      ownerId: ownerId ?? this.ownerId,
+      title: title ?? this.title,
+      address: address ?? this.address,
+      roomNumber: roomNumber ?? this.roomNumber,
+      price: price ?? this.price,
+      roomType: roomType ?? this.roomType,
+      floor: floor ?? this.floor,
+      area: area ?? this.area,
+      capacity: capacity ?? this.capacity,
+      images: images ?? this.images,
+      createdAt: createdAt ?? this.createdAt,
+      description: description ?? this.description,
+      genderRequirement: genderRequirement ?? this.genderRequirement,
+      pricingType: pricingType ?? this.pricingType,
+      includesUtilities: includesUtilities ?? this.includesUtilities,
+      currentResidents: currentResidents ?? this.currentResidents,
+      amenities: amenities ?? this.amenities,
+      furniture: furniture ?? this.furniture,
+      status: status ?? this.status,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 
   static List<String> _toStringList(dynamic value) {
     if (value == null) return [];
@@ -90,15 +130,6 @@ class Room {
       area: (data['area'] ?? 20).toDouble(),
       capacity: data['capacity'] ?? 2,
       currentResidents: data['currentResidents'] ?? 0,
-      deposit: data['deposit'] ?? '',
-      promotionalOffers: data['promotionalOffers'] ?? '',
-      promotionalperiodStart: data['promotionalperiodStart'] != null
-          ? _parseTimestamp(data['promotionalperiodStart'])
-          : DateTime.now(),
-      promotionalperiodEnd: data['promotionalperiodEnd'] != null
-          ? _parseTimestamp(data['promotionalperiodEnd'])
-          : DateTime.now(),
-      parkingspaces: data['parkingspaces'] ?? 0,    
       amenities: _toStringList(data['amenities']),
       furniture: _toStringList(data['furniture']),
       images: _toStringList(data['images']),
@@ -125,11 +156,6 @@ class Room {
       'area': area,
       'capacity': capacity,
       'currentResidents': currentResidents,
-      'deposit': deposit,
-      'promotionalOffers': promotionalOffers,
-      'promotionalperiodStart': Timestamp.fromDate(promotionalperiodStart),
-      'promotionalperiodEnd': Timestamp.fromDate(promotionalperiodEnd),
-      'parkingspaces': parkingspaces,
       'amenities': amenities,
       'furniture': furniture,
       'images': images,
