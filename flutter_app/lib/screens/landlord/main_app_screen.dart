@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:room_rental_app/providers/user_provider.dart';
 import 'package:room_rental_app/screens/message/message_screen.dart';
-// import 'package:room_rental_app/screens/user/profile/profile_screen.dart';
+import 'package:room_rental_app/screens/user/profile/profile_screen.dart';
 import 'package:room_rental_app/screens/landlord/home_screen.dart';
-// import 'package:room_rental_app/screens/user/room/create_post_screen.dart';
-
-// import 'video_screen.dart';
-// import 'message_screen.dart';
 
 class VideoScreen extends StatelessWidget {
   const VideoScreen({super.key});
@@ -44,14 +42,21 @@ class _MainAppScreenState extends State<LandlordMainAppScreen> {
     const LandlordHomeScreen(),
     const VideoScreen(),
     const MessageScreen(),
-    // const ProfileScreen(),
+    const ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      Provider.of<UserProvider>(context, listen: false).loadCurrentUser();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
-
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,

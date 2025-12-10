@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+const String kDefaultAvatarUrl =
+    'gs://roomrental-d2361.firebasestorage.app/Avatar/Ren.png';
+
 class AuthProvider with ChangeNotifier {
   String? _errorMessage;
   bool _isLoading = false;
@@ -17,130 +20,128 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
 
   Future<Map<String, dynamic>?> login(String email, String password) async {
-  _isLoading = true;
-  _errorMessage = null;
-  notifyListeners();
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
-  try {
-    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-      email: email.trim(),
-      password: password.trim(),
-    );
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
 
-    _currentUser = userCredential.user;
+      _currentUser = userCredential.user;
 
-    await _storage.write(key: 'uid', value: _currentUser!.uid);
+      await _storage.write(key: 'uid', value: _currentUser!.uid);
 
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_currentUser!.uid)
-        .get();
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_currentUser!.uid)
+          .get();
 
-    if (!userDoc.exists) {
-      _errorMessage = "Không tìm thấy dữ liệu người dùng!";
+      if (!userDoc.exists) {
+        _errorMessage = "Không tìm thấy dữ liệu người dùng!";
+        _isLoading = false;
+        notifyListeners();
+        return null;
+      }
+
+      String role = userDoc.get("role");
+
+      _isLoading = false;
+      notifyListeners();
+
+      return {"success": true, "role": role, "uid": _currentUser!.uid};
+    } catch (e) {
+      _errorMessage = _handleAuthError(e);
       _isLoading = false;
       notifyListeners();
       return null;
     }
-
-    String role = userDoc.get("role");
-
-    _isLoading = false;
-    notifyListeners();
-
-    return {
-      "success": true,
-      "role": role,
-      "uid": _currentUser!.uid,
-    };
-  } catch (e) {
-    _errorMessage = _handleAuthError(e);
-    _isLoading = false;
-    notifyListeners();
-    return null;
   }
-}
-
 
   Future<bool> register(
-  String name,
-  String email,
-  String password,
-  String confirmPassword, {
-  String? phone,
-  required String role,
-}) async {
-  _isLoading = true;
-  _errorMessage = null;
-  notifyListeners();
+    String name,
+    String email,
+    String password,
+    String confirmPassword, {
+    String? phone,
+    required String role,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
-  if (password != confirmPassword) {
-    _errorMessage = 'Mật khẩu xác nhận không khớp';
+    if (password != confirmPassword) {
+      _errorMessage = 'Mật khẩu xác nhận không khớp';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
+
+      final uid = userCredential.user!.uid;
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'userId': uid,
+        'name': name.trim(),
+        'email': email.trim(),
+        'phone': phone?.trim(),
+        'role': role,
+        'avatar': kDefaultAvatarUrl,
+        'status': 'active',
+        'gender': null,
+        'createAt': FieldValue.serverTimestamp(),
+        'updateAt': FieldValue.serverTimestamp(),
+      });
+
+      await _storage.write(key: 'uid', value: uid);
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'email-already-in-use':
+          _errorMessage = 'Email đã được sử dụng.';
+          break;
+        case 'invalid-email':
+          _errorMessage = 'Email không hợp lệ.';
+          break;
+        case 'weak-password':
+          _errorMessage = 'Mật khẩu quá yếu.';
+          break;
+        default:
+          _errorMessage = 'Lỗi không xác định: ${e.message}';
+      }
+    } catch (e) {
+      _errorMessage = 'Đăng ký thất bại: $e';
+    }
+
     _isLoading = false;
     notifyListeners();
     return false;
   }
 
-  try {
-    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-      email: email.trim(),
-      password: password.trim(),
-    );
+  Future<void> checkAuthState() async {
+    final uid = await _storage.read(key: 'uid');
 
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userCredential.user!.uid)
-        .set({
-      'userId': userCredential.user!.uid,
-      'name': name.trim(),
-      'email': email.trim(),
-      'phone': phone?.trim(),
-      'role': role,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    final user = _auth.currentUser;
 
-    await _storage.write(key: 'uid', value: userCredential.user!.uid);
-
-    _isLoading = false;
-    notifyListeners();
-    return true;
-  } on FirebaseAuthException catch (e) {
-    switch (e.code) {
-      case 'email-already-in-use':
-        _errorMessage = 'Email đã được sử dụng.';
-        break;
-      case 'invalid-email':
-        _errorMessage = 'Email không hợp lệ.';
-        break;
-      case 'weak-password':
-        _errorMessage = 'Mật khẩu quá yếu.';
-        break;
-      default:
-        _errorMessage = 'Lỗi không xác định: ${e.message}';
+    if (uid != null && user != null && user.uid == uid) {
+      _currentUser = user;
+    } else {
+      _currentUser = null;
     }
-  } catch (e) {
-    _errorMessage = 'Đăng ký thất bại: $e';
+
+    notifyListeners();
   }
-
-  _isLoading = false;
-  notifyListeners();
-  return false;
-}
-
-Future<void> checkAuthState() async {
-  final uid = await _storage.read(key: 'uid');
-
-  final user = _auth.currentUser;
-
-  if (uid != null && user != null && user.uid == uid) {
-    _currentUser = user;
-  } else {
-    _currentUser = null;
-  }
-
-  notifyListeners();
-}
-
 
   String _handleAuthError(dynamic e) {
     if (e is FirebaseAuthException) {

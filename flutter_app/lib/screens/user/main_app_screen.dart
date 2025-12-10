@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:room_rental_app/providers/user_provider.dart';
+
 import 'package:room_rental_app/screens/message/message_screen.dart';
 import 'package:room_rental_app/screens/user/profile/profile_screen.dart';
 import 'package:room_rental_app/screens/user/room/create_post_screen.dart';
 import 'home_screen.dart';
-// import 'video_screen.dart';
-// import 'message_screen.dart';
 
 class VideoScreen extends StatelessWidget {
   const VideoScreen({super.key});
@@ -47,10 +48,20 @@ class _MainAppScreenState extends State<MainAppScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      Provider.of<UserProvider>(context, listen: false).loadCurrentUser();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final safeIndex = _currentIndex.clamp(0, _screens.length - 1);
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
-      floatingActionButton: _currentIndex == 0
+      body: IndexedStack(index: safeIndex, children: _screens),
+      floatingActionButton: safeIndex == 0
           ? FloatingActionButton(
               backgroundColor: Colors.red,
               onPressed: () {
@@ -66,7 +77,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
 
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
+        currentIndex: safeIndex,
         selectedItemColor: Colors.red,
         unselectedItemColor: Colors.grey,
         onTap: (index) {

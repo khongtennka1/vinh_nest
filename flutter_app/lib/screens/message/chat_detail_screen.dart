@@ -1,10 +1,10 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:room_rental_app/screens/user/profile/other_profile_screen.dart';
 
 class ChatMessage {
   final String id;
@@ -276,39 +276,137 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return '$h:$m';
   }
 
+  bool _isDifferentDay(DateTime a, DateTime b) {
+    return a.year != b.year || a.month != b.month || a.day != b.day;
+  }
+
+  Widget _buildDateSeparator(DateTime date) {
+    final today = DateTime.now();
+    String label;
+    if (date.year == today.year &&
+        date.month == today.month &&
+        date.day == today.day) {
+      label = 'Hôm nay';
+    } else if (date.year == today.subtract(Duration(days: 1)).year &&
+        date.month == today.subtract(Duration(days: 1)).month &&
+        date.day == today.subtract(Duration(days: 1)).day) {
+      label = 'Hôm qua';
+    } else {
+      label = '${date.day}/${date.month}/${date.year}';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Colors.black87),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMessageContent(ChatMessage msg, Color textColor) {
     if (msg.type == 'image' &&
         msg.imageUrl != null &&
         msg.imageUrl!.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: Image.network(
-          msg.imageUrl!,
-          width: 150,
-          height: 200,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return const SizedBox(
-              width: 150,
-              height: 200,
-              child: Center(child: CircularProgressIndicator()),
+        child: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => OtherProfileScreen(userId: widget.peerId),
+              ),
             );
           },
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              width: 150,
-              height: 200,
-              color: Colors.grey.shade300,
-              alignment: Alignment.center,
-              child: const Icon(Icons.broken_image),
-            );
-          },
+          child: Image.network(
+            msg.imageUrl!,
+            width: 150,
+            height: 200,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const SizedBox(
+                width: 150,
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 150,
+                height: 200,
+                color: Colors.grey.shade300,
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image),
+              );
+            },
+          ),
         ),
       );
     }
 
     return Text(msg.text, style: TextStyle(color: textColor));
+  }
+
+  Future<void> _changeNickname() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    final TextEditingController nicknameCtrl = TextEditingController();
+
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Đổi tên biệt danh'),
+          content: TextField(
+            controller: nicknameCtrl,
+            decoration: const InputDecoration(hintText: 'Tên mới'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Huỷ'),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(nicknameCtrl.text.trim()),
+              child: const Text('Lưu'),
+            ),
+          ],
+        );
+      },
+    );
+    if (result == null || result.isEmpty) return;
+
+    final convoRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .collection('conversations')
+        .doc(widget.conversationId);
+
+    final contactRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .collection('contacts')
+        .doc(widget.peerId);
+
+    await convoRef.set({'name': result}, SetOptions(merge: true));
+    await contactRef.set({'name': result}, SetOptions(merge: true));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Đổi tên biệt danh thành công')),
+    );
   }
 
   @override
@@ -318,28 +416,124 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        title: Row(
-          children: [
-            const CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=12'),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(widget.userName, style: const TextStyle(fontSize: 16)),
-                Text(
-                  'Đang hoạt động',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade200),
+        title: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.peerId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Row(
+                children: const [
+                  CircleAvatar(radius: 18, child: CircularProgressIndicator()),
+                  SizedBox(width: 8),
+                  Text('Đang tải...'),
+                ],
+              );
+            }
+
+            if (!snapshot.hasData || !snapshot.data!.exists) {
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => OtherProfileScreen(userId: widget.peerId),
+                    ),
+                  );
+                },
+                child: Row(
+                  children: [
+                    const CircleAvatar(radius: 18, child: Icon(Icons.person)),
+                    const SizedBox(width: 8),
+                    Text(widget.userName, style: const TextStyle(fontSize: 16)),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              );
+            }
+
+            final data = snapshot.data!.data()!;
+
+            final String displayName = data['name'] ?? widget.userName;
+            final String? avatarUrl = data['avatar'];
+            final String status = data['status'] ?? 'offline';
+
+            return InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OtherProfileScreen(userId: widget.peerId),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                        ? NetworkImage(avatarUrl)
+                        : null,
+                    child: (avatarUrl == null || avatarUrl.isEmpty)
+                        ? Text(
+                            displayName.isNotEmpty
+                                ? displayName[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        status == 'active' ? 'Đang hoạt động' : 'Ngoại tuyến',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade200,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
         ),
         actions: [
           IconButton(icon: const Icon(Icons.call_outlined), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'nickname') {
+                await _changeNickname();
+              } else if (value == 'profile') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OtherProfileScreen(userId: widget.peerId),
+                  ),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'nickname',
+                child: Text('Đổi tên biệt danh'),
+              ),
+              const PopupMenuItem(
+                value: 'profile',
+                child: Text('Xem trang cá nhân'),
+              ),
+            ],
+          ),
         ],
       ),
       body: Column(
@@ -397,6 +591,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           currentUser != null &&
                           msg.senderId == currentUser.uid;
 
+                      // date separator logic: show separator when first message or day changed
+                      final bool showDate =
+                          index == 0 ||
+                          _isDifferentDay(msg.time, messages[index - 1].time);
+
                       final align = isMe
                           ? Alignment.centerRight
                           : Alignment.centerLeft;
@@ -409,7 +608,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         bottomRight: Radius.circular(isMe ? 0 : 16),
                       );
 
-                      return Container(
+                      final messageWidget = Container(
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         alignment: align,
                         child: Column(
@@ -455,6 +654,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           ],
                         ),
                       );
+
+                      if (showDate) {
+                        return Column(
+                          children: [
+                            _buildDateSeparator(msg.time),
+                            messageWidget,
+                          ],
+                        );
+                      }
+
+                      return messageWidget;
                     },
                   );
                 },
@@ -538,6 +748,65 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ProfileScreen extends StatelessWidget {
+  final String userId;
+  const ProfileScreen({super.key, required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Trang cá nhân')),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData || !snapshot.data!.exists)
+            return const Center(child: Text('Không tìm thấy người dùng'));
+
+          final data = snapshot.data!.data()!;
+          final name = data['name'] ?? '';
+          final avatar = data['avatar'] ?? '';
+          final bio = data['bio'] ?? '';
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 48,
+                  backgroundImage: avatar.isNotEmpty
+                      ? NetworkImage(avatar)
+                      : null,
+                  child: avatar.isEmpty
+                      ? Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : '?',
+                          style: const TextStyle(fontSize: 28),
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(bio, textAlign: TextAlign.center),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

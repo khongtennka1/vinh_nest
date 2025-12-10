@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
+import 'package:room_rental_app/providers/ConversationProvider.dart';
 import 'package:room_rental_app/providers/create_hostel_provider.dart';
 import 'package:room_rental_app/providers/create_post_provider.dart';
 import 'package:room_rental_app/screens/auth/login_screen.dart';
@@ -22,7 +23,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await FirebaseAppCheck.instance.activate( 
+  await FirebaseAppCheck.instance.activate(
     providerAndroid: AndroidDebugProvider(),
   );
 
@@ -41,10 +42,13 @@ class MyApp extends StatelessWidget {
         //User
         ChangeNotifierProvider(create: (_) => RoomProvider()),
         ChangeNotifierProvider(create: (_) => CreatePostProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()..loadCurrentUser()),
+        ChangeNotifierProvider(
+          create: (_) => UserProvider()..loadCurrentUser(),
+        ),
         //Landlord
         // ChangeNotifierProvider(create: (_) => LandlordCreatePostProvider()),
         ChangeNotifierProvider(create: (_) => CreateHostelProvider()),
+        Provider(create: (_) => ConversationProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -61,7 +65,7 @@ class MyApp extends StatelessWidget {
           '/main': (context) => const MainAppScreen(),
           '/create_post': (context) => const CreatePostScreen(),
           '/landlord_main': (context) => const LandlordMainAppScreen(),
-          '/create_hostel': (context) => const CreateHostelScreen()
+          '/create_hostel': (context) => const CreateHostelScreen(),
         },
       ),
     );
