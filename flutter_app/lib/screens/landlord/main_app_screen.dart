@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:room_rental_app/screens/landlord/profile_screen.dart';
 import 'package:room_rental_app/screens/message/message_screen.dart';
-// import 'package:room_rental_app/screens/user/profile/profile_screen.dart';
 import 'package:room_rental_app/screens/landlord/home_screen.dart';
-// import 'package:room_rental_app/screens/user/room/create_post_screen.dart';
-
-// import 'video_screen.dart';
-// import 'message_screen.dart';
-
 class VideoScreen extends StatelessWidget {
   const VideoScreen({super.key});
   @override
@@ -44,7 +39,7 @@ class _MainAppScreenState extends State<LandlordMainAppScreen> {
     const LandlordHomeScreen(),
     const VideoScreen(),
     const MessageScreen(),
-    // const ProfileScreen(),
+    const ProfileScreen(),
   ];
 
   @override

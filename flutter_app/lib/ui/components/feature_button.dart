@@ -6,6 +6,7 @@ class FeatureButton extends StatelessWidget {
   final Color color;
 
   const FeatureButton({
+    super.key, 
     required this.icon,
     required this.label,
     this.color = Colors.black,

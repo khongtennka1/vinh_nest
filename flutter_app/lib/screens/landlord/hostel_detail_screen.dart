@@ -146,7 +146,7 @@ class HostelDetailScreen extends StatelessWidget {
                       runSpacing: 10,
                       children: facilities.map((item) => Chip(
                         label: Text(item),
-                        backgroundColor: Colors.blue.withOpacity(0.1),
+                        backgroundColor: Colors.blue.withAlpha(25),
                         labelStyle: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
                         avatar: const Icon(Icons.check, size: 16, color: Colors.blue),
                       )).toList(),
@@ -162,7 +162,7 @@ class HostelDetailScreen extends StatelessWidget {
                       runSpacing: 10,
                       children: interiors.map((item) => Chip(
                         label: Text(item),
-                        backgroundColor: Colors.green.withOpacity(0.1),
+                        backgroundColor: Colors.green.withAlpha(25),
                         labelStyle: const TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
                         avatar: const Icon(Icons.check, size: 16, color: Colors.green),
                       )).toList(),
@@ -170,15 +170,15 @@ class HostelDetailScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                   ],
 
-                  if (hostel.services.isNotEmpty) ...[
+                  if (hostel.customServices.isNotEmpty) ...[
                     _sectionTitle('Dịch vụ đi kèm'),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
-                      children: hostel.services.map((service) => Chip(
-                        label: Text(service),
-                        backgroundColor: Colors.purple.withOpacity(0.1),
+                      children: hostel.customServices.map((service) => Chip(
+                        label: Text('${service['name']}: ${service['price']}'),
+                        backgroundColor: Colors.purple.withAlpha(25),
                         labelStyle: const TextStyle(color: Colors.purple, fontWeight: FontWeight.w600),
                       )).toList(),
                     ),

@@ -28,11 +28,14 @@ dependencies:
   url_launcher: ^6.3.2
   http: ^1.1.0
   google_fonts: ^6.3.2
-<<<<<<< HEAD
   dotted_border: ^3.1.0
-=======
   flutter_slidable: ^4.0.3
->>>>>>> 3e709a82b91655f9cb4cbe0706fcf8e928e522df
+  intl: ^0.20.2
+  flutter_localizations:   
+    sdk: flutter
+  month_picker_dialog: ^6.7.0
+  flutter_dotenv: ^6.0.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

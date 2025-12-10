@@ -119,11 +119,9 @@ class _MessageScreenState extends State<MessageScreen> {
 
                     return Slidable(
                       key: ValueKey(c.id),
-                      // Vuốt sang trái để hiện action
                       endActionPane: ActionPane(
                         motion: const ScrollMotion(),
                         children: [
-                          // Đánh dấu chưa đọc
                           SlidableAction(
                             onPressed: (ctx) async {
                               await FirebaseFirestore.instance
@@ -132,7 +130,6 @@ class _MessageScreenState extends State<MessageScreen> {
                                   .collection('conversations')
                                   .doc(c.id)
                                   .update({
-                                    // tuỳ bạn, ở đây mình để = 1 để hiện badge
                                     'unread': 1,
                                   });
                             },
@@ -142,7 +139,6 @@ class _MessageScreenState extends State<MessageScreen> {
                             label: 'Chưa đọc',
                           ),
 
-                          // Xoá cuộc trò chuyện
                           SlidableAction(
                             onPressed: (ctx) async {
                               final confirm = await showDialog<bool>(
@@ -190,7 +186,6 @@ class _MessageScreenState extends State<MessageScreen> {
                       ),
                       child: ListTile(
                         onTap: () async {
-                          // reset unread của currentUser
                           await FirebaseFirestore.instance
                               .collection('users')
                               .doc(currentUserId)

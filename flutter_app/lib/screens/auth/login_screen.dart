@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:room_rental_app/providers/user_provider.dart';
 import '../../providers/auth_provider.dart';
 import 'register_screen.dart';
 
@@ -299,38 +300,28 @@ class _LoginScreenState extends State<LoginScreen> {
                                     onPressed: authProvider.isLoading
                                         ? null
                                         : () async {
-                                            if (_formKey.currentState!
-                                                .validate()) {
-                                                  final result = await authProvider.login(
-                                              _emailController.text.trim(),
-                                              _passwordController.text.trim(),
+                                            if (_formKey.currentState!.validate()) {
+                                              final result = await authProvider.login(
+                                                _emailController.text.trim(),
+                                                _passwordController.text.trim(),
                                               );
 
                                               if (result != null && result["success"] == true && context.mounted) {
+                                                await Provider.of<UserProvider>(context, listen: false).loadUserByUid(result["uid"]);
+
                                                 String role = result["role"];
 
-                                                if (context.mounted) {
-                                                  if (role == 'user') {
-                                                    Navigator.pushReplacementNamed(
-                                                      context,
-                                                      '/main',
-                                                    );
-                                                  } else if (role == 'landlord') {
-                                                    Navigator.pushReplacementNamed(
-                                                      context,
-                                                      '/landlord_main',
-                                                    );
-                                                  } else {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          'Vai trò không xác định: $role',
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }
+                                                if (role == 'user') {
+                                                  Navigator.pushReplacementNamed(context, '/main');
+                                                } else if (role == 'landlord') {
+                                                  Navigator.pushReplacementNamed(context, '/landlord_main');
+                                                } else {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Vai trò không xác định')),
+                                                  );
                                                 }
-                                              } else  if (context.mounted){  
+                                              }
+                                              else  if (context.mounted){  
                                                 ScaffoldMessenger.of(context).showSnackBar(
                                                   SnackBar(
                                                     content: Text(

@@ -15,6 +15,11 @@ class Room {
   final String pricingType;
   final bool includesUtilities;
   final double area;
+  final double? deposit;
+  final double? promotionalMoney;
+  final DateTime? promotionStartDate;
+  final DateTime? promotionEndDate;
+  final int? numberOfParking;
   final int capacity;
   final int currentResidents;
   final List<String> amenities;
@@ -45,6 +50,11 @@ class Room {
     this.furniture = const [],
     this.images = const [],
     this.status = 'available',
+    this.deposit,
+    this.promotionalMoney,
+    this.promotionStartDate,
+    this.promotionEndDate,
+    this.numberOfParking,
     required this.createdAt,
     this.updatedAt,
   });
@@ -70,6 +80,7 @@ class Room {
     List<String>? furniture,
     List<String>? images,
     String? status,
+    int? numberOfParking,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -94,6 +105,7 @@ class Room {
       currentResidents: currentResidents ?? this.currentResidents,
       amenities: amenities ?? this.amenities,
       furniture: furniture ?? this.furniture,
+      numberOfParking: numberOfParking ?? this.numberOfParking,
       status: status ?? this.status,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -133,10 +145,10 @@ class Room {
       amenities: _toStringList(data['amenities']),
       furniture: _toStringList(data['furniture']),
       images: _toStringList(data['images']),
+      numberOfParking: data['numberOfParking'] ?? 0,
       status: data['status'] ?? 'available',
       createdAt: _parseTimestamp(data['createdAt']),
-      updatedAt:
-          data['updatedAt'] != null ? _parseTimestamp(data['updatedAt']) : null,
+      updatedAt: data['updatedAt'] != null ? _parseTimestamp(data['updatedAt']) : null,
     );
   }
 
@@ -159,6 +171,7 @@ class Room {
       'amenities': amenities,
       'furniture': furniture,
       'images': images,
+      'numberOfParking': numberOfParking,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,

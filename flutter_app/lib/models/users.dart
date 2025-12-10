@@ -7,8 +7,10 @@ class Users {
   final String? phone;
   final String? avatar;
   final String role;
+  final String plan;
   final String? gender;
   final String status;
+
   final Timestamp createAt;
   final Timestamp updateAt;
 
@@ -21,6 +23,7 @@ class Users {
     this.role = 'user',
     this.gender,
     this.status = 'active',
+    this.plan = 'free',
     Timestamp? createAt,
     Timestamp? updateAt,
   })  : this.createAt = createAt ?? Timestamp.now(),
@@ -34,7 +37,8 @@ class Users {
       phone: json['phone'],
       avatar: json['avatar'],
       role: json['role'] ?? 'user',
-      gender: json['gender'],    
+      gender: json['gender'],   
+      plan: json['plan'] ?? 'free', 
       status: json['status'] ?? 'active',
       createAt: json['createAt'] is Timestamp
           ? json['createAt']
@@ -55,6 +59,7 @@ class Users {
       'gender': gender,
       'role': role,
       'status': status,
+      'plan': plan,
       'createAt': createAt,
       'updateAt': updateAt,
     };

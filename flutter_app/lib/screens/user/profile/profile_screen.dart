@@ -4,8 +4,6 @@ import 'package:room_rental_app/providers/auth_provider.dart';
 import 'package:room_rental_app/providers/user_provider.dart';
 import 'package:room_rental_app/screens/user/room/my_posts_screen.dart';
 import 'edit_profile_screen.dart';
-
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -195,7 +193,7 @@ class ProfileScreen extends StatelessWidget {
                     await Provider.of<AuthProvider>(
                       context,
                       listen: false,
-                    ).logout();
+                    ).logout;
                     userProvider.clear();
                     if (context.mounted) {
                       Navigator.pushNamedAndRemoveUntil(

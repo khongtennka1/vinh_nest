@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'auth/login_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -68,7 +67,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [_accent.withOpacity(0.95), _accentDark],
+            colors: [_accent.withAlpha(80), _accentDark],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -84,9 +83,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   children: [
                     const SizedBox(height: 40),
 
-                    // Card chứa logo + app name
                     Material(
-                      color: Colors.white.withOpacity(0.06),
+                      color: Colors.white.withAlpha(30),
                       borderRadius: BorderRadius.circular(18),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -96,7 +94,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         width: double.infinity,
                         child: Row(
                           children: [
-                            // Logo circle
                             Container(
                               width: 92,
                               height: 92,
@@ -105,7 +102,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.12),
+                                    color: Colors.black.withAlpha(40),
                                     blurRadius: 12,
                                     offset: const Offset(0, 6),
                                   ),
@@ -122,12 +119,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                             const SizedBox(width: 18),
 
-                            // App title + tagline
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // App name
                                   Text(
                                     'Rentify',
                                     style: titleStyle.copyWith(fontSize: 28),
@@ -153,10 +148,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           width: size.width * 0.88,
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
+                            color: Colors.white.withAlpha(40),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.06),
+                              color: Colors.white.withAlpha(30),
                             ),
                           ),
                           child: Column(
@@ -168,8 +163,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   borderRadius: BorderRadius.circular(14),
                                   gradient: LinearGradient(
                                     colors: [
-                                      Colors.white.withOpacity(0.12),
-                                      Colors.white.withOpacity(0.06),
+                                      Colors.white.withAlpha(40),
+                                      Colors.white.withAlpha(30),
                                     ],
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
@@ -179,7 +174,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   child: Icon(
                                     Icons.apartment,
                                     size: 72,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withAlpha(60),
                                   ),
                                 ),
                               ),
@@ -197,7 +192,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                     const SizedBox(height: 16),
 
-                    // Start button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -217,7 +211,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             borderRadius: BorderRadius.circular(30),
                           ),
                           elevation: 6,
-                          shadowColor: Colors.black.withOpacity(0.25),
+                          shadowColor: Colors.black.withAlpha(50),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -233,7 +227,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             const SizedBox(width: 10),
                             Container(
                               decoration: BoxDecoration(
-                                color: _accent.withOpacity(0.12),
+                                color: _accent.withAlpha(30),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               padding: const EdgeInsets.all(8),
