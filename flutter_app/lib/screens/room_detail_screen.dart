@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:room_rental_app/models/hostel.dart';
 import 'package:room_rental_app/screens/message/chat_detail_screen.dart';
 
 class RoomDetailScreen extends StatelessWidget {
@@ -10,21 +11,66 @@ class RoomDetailScreen extends StatelessWidget {
 
   const RoomDetailScreen({super.key, required this.room, required this.roomId});
 
+  Future<void> _toggleFavorite(String roomId, String hostelId) async {
+  final uid = FirebaseAuth.instance.currentUser!.uid;
+
+  final favRef = FirebaseFirestore.instance.collection('favorites');
+
+  final snap = await favRef
+      .where('userId', isEqualTo: uid)
+      .where('roomId', isEqualTo: roomId)
+      .where('hostelId', isEqualTo: hostelId)
+      .get();
+
+  if (snap.docs.isNotEmpty) {
+    await favRef.doc(snap.docs.first.id).delete();
+    return;
+  }
+
+  await favRef.add({
+    'userId': uid,
+    'roomId': roomId,
+    'hostelId': hostelId,
+    'createdAt': FieldValue.serverTimestamp(),
+  });
+}
+
   @override
   Widget build(BuildContext context) {
-    final images = (room['images'] is List)
-        ? List<String>.from(room['images'].map((e) => e.toString()))
-        : <String>[];
+    final hostelId = room['hostelId'] as String?;
 
-    final amenities = (room['amenities'] is List)
-        ? List<String>.from(room['amenities'].map((e) => e.toString()))
-        : <String>[];
+    if (hostelId == null || hostelId.isEmpty) {
+      return _buildBasicDetail(context, room);
+    }
 
-    final furniture = (room['furniture'] is List)
-        ? List<String>.from(room['furniture'].map((e) => e.toString()))
-        : <String>[];
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('hostels').doc(hostelId).get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
 
-    final String ownerId = (room['ownerId'] ?? '').toString();
+        List<Map<String, dynamic>> services = [];
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final hostelData = snapshot.data!.data() as Map<String, dynamic>;
+          final hostel = Hostel.fromMap(hostelData, hostelId);
+          services = hostel.customServices;
+        }
+
+        return _buildFullDetail(context, room, services, hostelId);
+      },
+    );
+  }
+
+  Widget _buildBasicDetail(BuildContext context, Map<String, dynamic> room) {
+    return _buildFullDetail(context, room, [], null);
+  }
+
+  Widget _buildFullDetail(BuildContext context, Map<String, dynamic> room, List<Map<String, dynamic>> services, String? hostelId) {
+    final images = (room['images'] is List) ? List<String>.from(room['images']) : <String>[];
+    final amenities = (room['amenities'] is List) ? List<String>.from(room['amenities']) : <String>[];
+    final furniture = (room['furniture'] is List) ? List<String>.from(room['furniture']) : <String>[];
+    final ownerId = (room['ownerId'] ?? '').toString();
 
     return Scaffold(
       body: CustomScrollView(
@@ -32,41 +78,60 @@ class RoomDetailScreen extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 300,
             floating: false,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: images.isEmpty
-                  ? const Center(
-                      child: Icon(Icons.image_not_supported, size: 80),
-                    )
+                  ? const Center(child: Icon(Icons.image_not_supported, size: 80, color: Colors.white70))
                   : CarouselSlider(
                       options: CarouselOptions(
                         height: 300,
                         viewportFraction: 1.0,
                         enlargeCenterPage: false,
                         autoPlay: true,
+                        autoPlayInterval: const Duration(seconds: 4),
                       ),
-                      items: images
-                          .map(
-                            (url) => Image.network(
-                              url,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  const Icon(Icons.broken_image),
-                            ),
-                          )
-                          .toList(),
+                      items: images.map((url) => Image.network(url, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image))).toList(),
                     ),
             ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
+            leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.pop(context)),
             actions: [
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('favorites')
+                    .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                    .where('roomId', isEqualTo: roomId)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  final uid = FirebaseAuth.instance.currentUser?.uid;
+                  final ownerId = room['ownerId'];
+                  final bool isOwner = uid != null && uid == ownerId;
+
+                  final isFavorite =
+                      snapshot.hasData && snapshot.data!.docs.isNotEmpty;
+
+                  return IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.red : Colors.white,
+                    ),
+
+                    onPressed: isOwner
+                        ? () => ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Bạn không thể thích phòng của chính mình"),
+                              ),
+                            )
+                        : () => _toggleFavorite(roomId, room['hostelId']),
+                  );
+                },
+              ),
+
               IconButton(
-                icon: const Icon(Icons.favorite_border),
+                icon: const Icon(Icons.share, color: Colors.white),
                 onPressed: () {},
               ),
-              IconButton(icon: const Icon(Icons.share), onPressed: () {}),
             ],
           ),
 
@@ -78,192 +143,214 @@ class RoomDetailScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.home, color: Colors.orange),
+                      const Icon(Icons.home, color: Colors.orange, size: 28),
                       const SizedBox(width: 8),
-                      Text(
-                        room['roomNumber']?.toString() ?? 'Phòng trọ',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          room['roomNumber']?.toString() ?? 'Phòng trọ',
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      const Spacer(),
                       Text(
                         '${_formatPrice(room['price'])}đ/tháng',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
-                        ),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    room['description']?.toString() ?? 'Không có mô tả',
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
+                  Text(room['description']?.toString() ?? 'Không có mô tả', style: const TextStyle(fontSize: 15, color: Colors.black87)),
 
                   const SizedBox(height: 16),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _infoChip(
-                        Icons.stairs,
-                        'Tầng',
-                        room['floor']?.toString() ?? '—',
-                      ),
-                      _infoChip(
-                        Icons.square_foot,
-                        'Diện tích',
-                        '${room['area'] ?? '-'} m²',
-                      ),
-                      _infoChip(
-                        Icons.people,
-                        'Sức chứa',
-                        '${room['capacity'] ?? '-'} người',
-                      ),
+                      _infoChip(Icons.stairs, 'Tầng', room['floor']?.toString() ?? '—'),
+                      _infoChip(Icons.square_foot, 'Diện tích', '${room['area'] ?? '-'} m²'),
+                      _infoChip(Icons.people, 'Sức chứa', '${room['capacity'] ?? '-'} người'),
                       _infoChip(Icons.attach_money, 'Đặt cọc', '1 tháng'),
                     ],
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 30),
+                  const Text('Phí dịch vụ cố định', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
 
-                  _sectionTitle('Phí dịch vụ'),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    children: [
-                      _serviceChip(
-                        Icons.electrical_services,
-                        'Điện',
-                        '${room['electricPrice'] ?? '0'}đ/kWh',
-                      ),
-                      _serviceChip(
-                        Icons.water_drop,
-                        'Nước',
-                        '${room['waterPrice'] ?? '0'}đ/m³',
-                      ),
-                      _serviceChip(
-                        Icons.wifi,
-                        'Mạng',
-                        '${room['wifiPrice'] ?? '0'}đ/phòng',
-                      ),
-                      _serviceChip(
-                        Icons.cleaning_services,
-                        'Dịch vụ chung',
-                        '${room['serviceFee'] ?? '0'}đ/người',
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _sectionTitle('Nội thất'),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    children: furniture
-                        .map(
-                          (item) => Chip(
-                            label: Text(item),
-                            backgroundColor: Colors.orange.withOpacity(0.1),
-                            labelStyle: const TextStyle(color: Colors.orange),
-                          ),
+                  services.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Text('Chưa có phí dịch vụ', style: TextStyle(color: Colors.grey)),
                         )
-                        .toList(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _sectionTitle('Tiện nghi'),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    children: amenities
-                        .map(
-                          (item) => Chip(
-                            label: Text(item),
-                            backgroundColor: Colors.blue.withOpacity(0.1),
-                            labelStyle: const TextStyle(color: Colors.blue),
-                          ),
-                        )
-                        .toList(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _sectionTitle('Đánh giá'),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Text(
-                        '0.0',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Row(
-                        children: List.generate(
-                          5,
-                          (i) => const Icon(
-                            Icons.star_border,
-                            size: 20,
-                            color: Colors.amber,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text('0 đánh giá'),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _sectionTitle('Bài đăng liên quan'),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: 3,
-                      itemBuilder: (ctx, i) => Container(
-                        width: 160,
-                        margin: const EdgeInsets.only(right: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          image: const DecorationImage(
-                            image: NetworkImage(
-                              'https://via.placeholder.com/160',
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              'HOMESTAY MỚI...',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                      : Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: services.map((service) {
+                            final name = service['name'] as String;
+                            final price = (service['price'] as num).toDouble();
+                            return Chip(
+                              avatar: CircleAvatar(
+                                backgroundColor: Colors.white.withAlpha(25),
+                                child: Icon(_getServiceIcon(name), size: 18, color: Colors.orange),
                               ),
-                            ),
-                            Text(
-                              'Từ 1.100.000đ/tháng',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ],
+                              label: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  Text(
+                                    '${_formatPrice(price)}đ/${_getUnit(name)}',
+                                    style: const TextStyle(fontSize: 11, color: Colors.orange, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: Colors.orange.withAlpha(15),
+                              padding: const EdgeInsets.all(10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            );
+                          }).toList(),
                         ),
-                      ),
-                    ),
+
+                  const SizedBox(height: 24),
+                  const Text('Nội thất', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: furniture
+                        .map((item) => Chip(
+                              label: Text(item),
+                              backgroundColor: Colors.green.withAlpha(25),
+                              labelStyle: const TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                            ))
+                        .toList(),
                   ),
+
+                  const SizedBox(height: 24),
+                  const Text('Tiện nghi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: amenities
+                        .map((item) => Chip(
+                              label: Text(item),
+                              backgroundColor: Colors.blue.withAlpha(25),
+                              labelStyle: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
+                            ))
+                        .toList(),
+                  ),
+
+                  const SizedBox(height: 30),
+                  const Text('Phòng khác trong toà nhà', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+
+                  hostelId == null
+                      ? const Text('Không có thông tin toà nhà', style: TextStyle(color: Colors.grey))
+                      : StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('hostels')
+                              .doc(hostelId)
+                              .collection('rooms')
+                              .where('status', isEqualTo: 'available')
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
+                            }
+                            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: Text('Hiện chưa có phòng khác', style: TextStyle(color: Colors.grey)),
+                              );
+                            }
+
+                            final otherRooms = snapshot.data!.docs
+                                .where((doc) => doc.id != roomId)  
+                                .take(10)
+                                .map((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              data['id'] = doc.id; 
+                              return data;
+                            }).toList();
+
+                            if (otherRooms.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: Text('Hiện chưa có phòng khác', style: TextStyle(color: Colors.grey)),
+                              );
+                            }
+
+                            return SizedBox(
+                              height: 220,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: otherRooms.length,
+                                itemBuilder: (context, i) {
+                                  final r = otherRooms[i];
+                                  final rImages = (r['images'] is List && r['images'].isNotEmpty) ? r['images'][0] : null;
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => RoomDetailScreen(room: r, roomId: r['id']),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 180,
+                                      margin: const EdgeInsets.only(right: 16),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
+                                        color: Colors.white,
+                                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                            child: rImages != null
+                                                ? Image.network(rImages, height: 110, width: double.infinity, fit: BoxFit.cover)
+                                                : Container(height: 110, color: Colors.grey[300], child: const Icon(Icons.home, size: 50)),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  r['roomNumber']?.toString() ?? 'Phòng ${i + 1}',
+                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '${_formatPrice(r['price'])}đ/tháng',
+                                                  style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.square_foot, size: 14, color: Colors.grey),
+                                                    Text(' ${r['area'] ?? '-'} m²', style: const TextStyle(fontSize: 12)),
+                                                    const SizedBox(width: 8),
+                                                    Icon(Icons.people, size: 14, color: Colors.grey),
+                                                    Text(' ${r['capacity'] ?? '-'} người', style: const TextStyle(fontSize: 12)),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
 
                   const SizedBox(height: 100),
                 ],
@@ -275,42 +362,45 @@ class RoomDetailScreen extends StatelessWidget {
 
       bottomSheet: Container(
         padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
-        ),
+        decoration: const BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)]),
         child: Row(
           children: [
-            Expanded(
-              child: OutlinedButton.icon(
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 120, 
+              child: ElevatedButton.icon(
                 icon: const Icon(Icons.report, color: Colors.red),
-                label: const Text('Báo cáo'),
+                label: const Text('Báo cáo', style: TextStyle(fontSize: 14)),
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.red, 
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 onPressed: () {},
-                style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 100, 
+              child: ElevatedButton.icon(
                 icon: const Icon(Icons.chat_bubble_outline),
-                label: const Text(
-                  'Chat',
-                  style: TextStyle(
-                    fontSize: 24
-                  ),
+                label: const Text('Chat', style: TextStyle(fontSize: 14)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () => _openChat(context: context, ownerId: ownerId),
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              flex: 2,
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 120, 
               child: ElevatedButton.icon(
-                icon: const Icon(Icons.calendar_today),
-                label: const Text('Đặt lịch xem phòng'),
+                icon: const Icon(Icons.calendar_today, size: 15),
+                label: const Text('Đặt lịch', style: TextStyle(fontSize: 14)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {},
               ),
@@ -324,42 +414,37 @@ class RoomDetailScreen extends StatelessWidget {
   Widget _infoChip(IconData icon, String label, String value) {
     return Column(
       children: [
-        Icon(icon, color: Colors.orange),
+        Icon(icon, color: Colors.orange, size: 28),
+        const SizedBox(height: 4),
         Text(label, style: const TextStyle(fontSize: 12)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
       ],
     );
   }
 
-  Widget _serviceChip(IconData icon, String label, String price) {
-    return Chip(
-      avatar: Icon(icon, size: 16),
-      label: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label),
-          Text(price, style: const TextStyle(fontSize: 10)),
-        ],
-      ),
-    );
+  IconData _getServiceIcon(String name) {
+    name = name.toLowerCase();
+    if (name.contains('điện')) return Icons.electrical_services;
+    if (name.contains('nước')) return Icons.water_drop;
+    if (name.contains('mạng') || name.contains('wifi')) return Icons.wifi;
+    if (name.contains('xe')) return Icons.local_parking;
+    if (name.contains('rác') || name.contains('vệ sinh')) return Icons.delete;
+    return Icons.receipt_long;
   }
 
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    );
+  String _getUnit(String name) {
+    name = name.toLowerCase();
+    if (name.contains('điện')) return 'kWh';
+    if (name.contains('nước')) return 'm³';
+    if (name.contains('mạng') || name.contains('wifi')) return 'phòng';
+    if (name.contains('xe')) return 'xe';
+    return 'tháng';
   }
 
   String _formatPrice(dynamic price) {
     if (price == null) return '0';
-    final p = (price is num)
-        ? price.toInt()
-        : int.tryParse(price.toString()) ?? 0;
-    return p.toString().replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-      (m) => '${m[1]}.',
-    );
+    final p = price is num ? price.toInt() : int.tryParse(price.toString()) ?? 0;
+    return p.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
   }
 }
 
@@ -433,7 +518,6 @@ Future<void> _openChat({
   if (!doc.exists) {
     final now = Timestamp.now();
 
-    // conversation phía người thuê
     await userConversationRef.set({
       'peerId': ownerId,
       'peerName': ownerName,
@@ -444,7 +528,6 @@ Future<void> _openChat({
       'createdAt': now,
     });
 
-    // conversation phía chủ phòng
     await ownerConversationRef.set({
       'peerId': currentUserId,
       'peerName': currentUserName,

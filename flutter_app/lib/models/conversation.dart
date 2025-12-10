@@ -8,7 +8,7 @@ class Conversation {
   final DateTime time;
   final int unread;
   final String avatarUrl;
-  final bool archived; // ✅ thêm
+  final bool archived;
 
   Conversation({
     required this.id,

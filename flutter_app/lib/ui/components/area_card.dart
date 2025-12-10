@@ -4,7 +4,7 @@ class AreaCard extends StatelessWidget {
   final String name;
   final String imageUrl;
 
-  const AreaCard({required this.name, required this.imageUrl});
+  const AreaCard({super.key, required this.name, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {

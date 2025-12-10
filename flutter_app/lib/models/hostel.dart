@@ -10,18 +10,17 @@ class Hostel {
   final List<String> interiors;
   final List<String> images;
   final int numberParkingSpaces;
-  final List<String> services;
   final List<String> roomTypes;
   final DateTime createdAt;
   final DateTime? updatedAt;
   final String status;
+  final List<Map<String, dynamic>> customServices;
 
   Hostel({
     required this.id,
     required this.ownerId,
     required this.name,
-    required this.addressId,
-    required this.services,
+    this.addressId = '',
     required this.numberParkingSpaces,
     required this.createdAt,
     required this.roomTypes,
@@ -31,6 +30,7 @@ class Hostel {
     this.images = const [],
     this.updatedAt,
     this.status = 'active',
+    this.customServices = const [],
   });
 
   static List<String> _toList(dynamic value) {
@@ -41,6 +41,27 @@ class Hostel {
   }
 
   factory Hostel.fromMap(Map<String, dynamic> data, String id) {
+    final rawServices = data['customServices'] as List<dynamic>?;
+
+    List<Map<String, dynamic>> parseCustomServices() {
+      if (rawServices == null || rawServices.isEmpty) return [];
+      return rawServices.map((item) {
+        if (item is Map) {
+          return {
+            'name': item['name']?.toString() ?? 'Dịch vụ',
+            'price': (item['price'] as num?)?.toDouble() ?? 0.0,
+          };
+        }
+        if (item is String && item.contains(':')) {
+          final parts = item.split(':');
+          final name = parts[0].trim();
+          final price = double.tryParse(parts[1].trim()) ?? 0.0;
+          return {'name': name, 'price': price};
+        }
+        return {'name': item.toString(), 'price': 0.0};
+      }).toList();
+    }
+
     DateTime parseTime(dynamic t) {
       if (t is Timestamp) return t.toDate();
       if (t is String) return DateTime.parse(t);
@@ -53,7 +74,6 @@ class Hostel {
       name: data['name'] ?? '',
       addressId: data['addressId'] ?? '',
       description: data['description'],
-      services: _toList(data['services']),
       numberParkingSpaces: data['number_parking_spaces'] ?? 0,
       facilities: _toList(data['facilities']),
       interiors: _toList(data['interiors']),
@@ -62,6 +82,7 @@ class Hostel {
       createdAt: parseTime(data['createdAt']),
       updatedAt: data['updatedAt'] != null ? parseTime(data['updatedAt']) : null,
       status: data['status'] ?? 'active',
+      customServices: parseCustomServices(),
     );
   }
 
@@ -73,13 +94,13 @@ class Hostel {
       'description': description,
       'facilities': facilities,
       'interiors': interiors,
-      'services': services,
       'roomTypes': roomTypes,
       'number_parking_spaces': numberParkingSpaces,
       'images': images,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
       'status': status,
+      'customServices': customServices,
     };
   }
 }

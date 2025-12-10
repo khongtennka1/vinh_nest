@@ -11,31 +11,50 @@ class UserProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> loadCurrentUser() async {
-    if (FirebaseAuth.instance.currentUser == null) {
+    final fbUser = FirebaseAuth.instance.currentUser;
+
+    if (fbUser == null) {
       _currentUser = null;
       notifyListeners();
       return;
     }
 
+    return loadUserByUid(fbUser.uid);
+  }
+
+  Future<void> loadUserByUid(String uid) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
 
       if (doc.exists) {
         _currentUser = Users.fromJson(doc.data()!);
       } else {
+        final fbUser = FirebaseAuth.instance.currentUser;
+
         _currentUser = Users(
           userId: uid,
-          name: FirebaseAuth.instance.currentUser!.displayName ?? 'Người dùng VinhNest',
-          email: FirebaseAuth.instance.currentUser!.email ?? '',
+          name: fbUser?.displayName ?? 'Người dùng VinhNest',
+          email: fbUser?.email ?? "",
+          avatar: fbUser?.photoURL,
+          phone: null,
+          gender: null,
+          role: "user",
+          status: "active",
+          plan: "free", 
+          createAt: Timestamp.now(),
+          updateAt: Timestamp.now(),
         );
+
         await saveUserToFirestore();
       }
     } catch (e) {
-      debugPrint('Lỗi load user: $e');
+      debugPrint("Lỗi load user: $e");
     }
 
     _isLoading = false;
@@ -47,6 +66,7 @@ class UserProvider with ChangeNotifier {
     required String phone,
     String? gender,
     String? avatar,
+    String? plan,
   }) async {
     if (_currentUser == null) return;
 
@@ -54,7 +74,7 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final updatedUser = Users(
+      _currentUser = Users(
         userId: _currentUser!.userId,
         name: name.trim(),
         email: _currentUser!.email,
@@ -62,15 +82,15 @@ class UserProvider with ChangeNotifier {
         avatar: avatar ?? _currentUser!.avatar,
         gender: gender,
         role: _currentUser!.role,
+        plan: plan ?? _currentUser!.plan,
         status: _currentUser!.status,
         createAt: _currentUser!.createAt,
         updateAt: Timestamp.now(),
       );
 
-      _currentUser = updatedUser;
       await saveUserToFirestore();
     } catch (e) {
-      debugPrint('Lỗi cập nhật: $e');
+      debugPrint("Lỗi cập nhật: $e");
     }
 
     _isLoading = false;
@@ -79,6 +99,7 @@ class UserProvider with ChangeNotifier {
 
   Future<void> saveUserToFirestore() async {
     if (_currentUser == null) return;
+
     await FirebaseFirestore.instance
         .collection('users')
         .doc(_currentUser!.userId)

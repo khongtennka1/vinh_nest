@@ -599,7 +599,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       final align = isMe
                           ? Alignment.centerRight
                           : Alignment.centerLeft;
-                      final bgColor = isMe ? Colors.redAccent : Colors.white;
+                      final bgColor = isMe ? const Color.fromARGB(255, 41, 151, 241) : Colors.white;
                       final textColor = isMe ? Colors.white : Colors.black87;
                       final radius = BorderRadius.only(
                         topLeft: const Radius.circular(16),
@@ -635,7 +635,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                 boxShadow: [
                                   if (msg.type != 'image')
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
+                                      color: Colors.black.withAlpha(15),
                                       blurRadius: 3,
                                       offset: const Offset(0, 1),
                                     ),
@@ -680,7 +680,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withAlpha(15),
                     blurRadius: 3,
                     offset: const Offset(0, -1),
                   ),
@@ -691,7 +691,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   IconButton(
                     icon: const Icon(Icons.emoji_emotions_outlined),
                     onPressed: () {
-                      // TODO: mở emoji picker nếu cần
                     },
                   ),
                   IconButton(
@@ -723,7 +722,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       padding: const EdgeInsets.all(10),
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.redAccent,
+                        color: Color.fromARGB(255, 41, 151, 241),
                       ),
                       child: _isSendingImage
                           ? const SizedBox(

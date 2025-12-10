@@ -16,6 +16,7 @@ class CreateHostelProvider with ChangeNotifier {
   final streetController = TextEditingController();
   final parkingController = TextEditingController();
   final descriptionController = TextEditingController();
+  final List<Map<String, dynamic>> customServices = [];
 
   List<XFile> selectedImages = [];
   List<String> imageUrls = [];
@@ -84,6 +85,16 @@ class CreateHostelProvider with ChangeNotifier {
       currentStep--;
       notifyListeners();
     }
+  }
+
+  void addCustomService(String name, double price) {
+    customServices.add({'name': name, 'price': price});
+    notifyListeners();
+  }
+
+  void removeCustomService(int index) {
+    customServices.removeAt(index);
+    notifyListeners();
   }
 
   void addImages(List<XFile> images) {
@@ -159,9 +170,9 @@ class CreateHostelProvider with ChangeNotifier {
         roomTypes: selectedRoomTypes,
         images: imageUrls,
         numberParkingSpaces: int.tryParse(parkingController.text) ?? 0,
-        services: [], 
         createdAt: DateTime.now(),
-        status: 'active',
+        status: 'active', 
+        customServices: customServices,
       );
 
       await hostelRef.set(hostel.toMap());
@@ -193,6 +204,7 @@ class CreateHostelProvider with ChangeNotifier {
     selectedFacilities.clear();
     selectedInteriors.clear();
     selectedRoomTypes.clear();
+    customServices.clear();
     notifyListeners();
   }
 

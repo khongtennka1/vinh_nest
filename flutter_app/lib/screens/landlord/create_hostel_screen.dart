@@ -20,49 +20,19 @@ class _CreateHostelView extends StatelessWidget {
   const _CreateHostelView();
 
   final List<String> allFacilities = const [
-  'Wifi',
-  'Ra vào bằng vân tay',
-  'Bếp',
-  'Ban công',
-  "Gửi xe điện",
-  "Nội thất",
-  "Điều hòa",
-  "Nóng lạnh",
-  "Kệ bếp",
-  "Tủ lạnh",
-  "Giường ngủ",
-  "Máy giặt",
-  "Đồ dùng bếp",
-  'Gác lửng',
-  'Thang máy',
-  'Bảo vệ',
-  'Camera',
-  'Chỗ để xe',
-  'Tự do giờ giấc'
+    'Wifi', 'Ra vào bằng vân tay', 'Bếp', 'Ban công', "Gửi xe điện", "Nội thất",
+    "Điều hòa", "Nóng lạnh", "Kệ bếp", "Tủ lạnh", "Giường ngủ", "Máy giặt",
+    "Đồ dùng bếp", 'Gác lửng', 'Thang máy', 'Bảo vệ', 'Camera', 'Chỗ để xe', 'Tự do giờ giấc'
   ];
 
   final List<String> allInteriors = const [
-  "Bàn ghế",
-  "Đèn trang trí",
-  "Tranh trang trí",
-  "Cây cối trang trí",
-  "Chăn ga gối",
-  "Tủ quần áo",
-  "Nệm",
-  "Kệ giày dép",
-  "Rèm",
-  "Quạt trần",
-  "Gương toàn thân",
-  "Sofa"
+    "Bàn ghế", "Đèn trang trí", "Tranh trang trí", "Cây cối trang trí",
+    "Chăn ga gối", "Tủ quần áo", "Nệm", "Kệ giày dép", "Rèm", "Quạt trần",
+    "Gương toàn thân", "Sofa"
   ];
 
-  final List<String> allRoomTypes= const [
-    'Phòng trọ',
-    'Chung cư',
-    'Chung cư mini',
-    'Homestay',
-    'Ký túc xá',
-    'Khác'
+  final List<String> allRoomTypes = const [
+    'Phòng trọ', 'Chung cư', 'Chung cư mini', 'Homestay', 'Ký túc xá', 'Khác'
   ];
 
   @override
@@ -72,7 +42,7 @@ class _CreateHostelView extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.orange,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.close),
@@ -86,7 +56,7 @@ class _CreateHostelView extends StatelessWidget {
             children: [
               _stepInfo(p),
               _stepImages(p),
-              _stepFacilities(p),
+              _stepFacilities(context, p), 
             ],
           ),
           bottomNavigationBar: _bottomBar(context, p),
@@ -112,35 +82,32 @@ class _CreateHostelView extends StatelessWidget {
             _field(p.wardController, 'Quận/Huyện *', 'VD: Trường Vinh', Icons.maps_home_work, validator: (v) => v!.trim().isEmpty ? 'Bắt buộc' : null),
             const SizedBox(height: 16),
             _field(p.streetController, 'Đường/Số nhà *', 'VD: Lê Duẩn', Icons.streetview, validator: (v) => v!.trim().isEmpty ? 'Bắt buộc' : null),
-
             const SizedBox(height: 30),
 
             const Text('Loại phòng', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-
-            const SizedBox(height: 20,),
-
+            const SizedBox(height: 20),
             Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: p.allRoomTypes.map((item) {
-              final selected = p.selectedRoomTypes.contains(item);
-              return FilterChip(
-                label: Text(item),
-                selected: selected,
-                onSelected: (_) {
-                  if (selected) {
-                    p.selectedRoomTypes.remove(item);
-                  } else {
-                    p.selectedRoomTypes.add(item);
-                  }
-                  p.notifyListeners();
-                },
-                selectedColor: Colors.orange,
-                backgroundColor: Colors.grey[200],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              );
-            }).toList(),
-          ),
+              spacing: 10,
+              runSpacing: 10,
+              children: p.allRoomTypes.map((item) {
+                final selected = p.selectedRoomTypes.contains(item);
+                return FilterChip(
+                  label: Text(item),
+                  selected: selected,
+                  onSelected: (_) {
+                    if (selected) {
+                      p.selectedRoomTypes.remove(item);
+                    } else {
+                      p.selectedRoomTypes.add(item);
+                    }
+                    p.notifyListeners();
+                  },
+                  selectedColor: Colors.orange,
+                  backgroundColor: Colors.grey[200],
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                );
+              }).toList(),
+            ),
           ],
         ),
       ),
@@ -211,7 +178,7 @@ class _CreateHostelView extends StatelessWidget {
     );
   }
 
-  Widget _stepFacilities(CreateHostelProvider p) {
+  Widget _stepFacilities(BuildContext context, CreateHostelProvider p) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -219,6 +186,7 @@ class _CreateHostelView extends StatelessWidget {
         children: [
           _field(p.parkingController, 'Số chỗ để xe (tuỳ chọn)', 'VD: 30', Icons.local_parking),
           const SizedBox(height: 30),
+
           const Text('Tiện ích chung của toà nhà', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Wrap(
@@ -245,11 +213,8 @@ class _CreateHostelView extends StatelessWidget {
           ),
 
           const SizedBox(height: 30),
-
           const Text('Nội thất', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-
           const SizedBox(height: 20),
-
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -273,11 +238,165 @@ class _CreateHostelView extends StatelessWidget {
             }).toList(),
           ),
 
+          const SizedBox(height: 40),
+          Row(
+            children: [
+              const Icon(Icons.receipt_long, color: Colors.orange, size: 28),
+              const SizedBox(width: 12),
+              const Text('Phí dịch vụ cố định', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline, color: Colors.orange, size: 30),
+                onPressed: () => _showAddServiceDialog(context, p),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          p.customServices.isEmpty
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Chưa có dịch vụ nào\nBấm nút + để thêm',
+                      style: TextStyle(color: Colors.grey, fontSize: 15),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: p.customServices.length,
+                  itemBuilder: (context, i) {
+                    final service = p.customServices[i];
+                    final name = service['name'] as String;
+                    final price = (service['price'] as num).toDouble();
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.orange.withAlpha(25),
+                          child: Icon(_getServiceIcon(name), color: Colors.orange),
+                        ),
+                        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: Text(
+                          '${_formatPrice(price)}đ/${_getUnit(name)}',
+                          style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_forever, color: Colors.red),
+                          onPressed: () => p.removeCustomService(i),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
           const SizedBox(height: 30),
           _field(p.descriptionController, 'Mô tả toà nhà (tuỳ chọn)', 'Giới thiệu, quy định...', Icons.description, maxLines: 6),
         ],
       ),
     );
+  }
+
+  void _showAddServiceDialog(BuildContext context, CreateHostelProvider p) {
+    final nameController = TextEditingController();
+    final priceController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.add_circle, color: Colors.orange, size: 28),
+            SizedBox(width: 12),
+            Text('Thêm dịch vụ cố định', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                labelText: 'Tên dịch vụ',
+                hintText: 'VD: Điện, Nước, Mạng, Giữ xe...',
+                prefixIcon: const Icon(Icons.label),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: priceController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Giá tiền (VND)',
+                hintText: 'VD: 4000',
+                prefixIcon: const Icon(Icons.attach_money),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            onPressed: () {
+              final name = nameController.text.trim();
+              final priceText = priceController.text.replaceAll(RegExp(r'[.,\s]'), '');
+              final price = double.tryParse(priceText);
+
+              if (name.isEmpty || price == null || price <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Vui lòng nhập đầy đủ và đúng định dạng')),
+                );
+                return;
+              }
+
+              p.addCustomService(name, price);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Thêm', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getServiceIcon(String name) {
+    name = name.toLowerCase();
+    if (name.contains('điện')) return Icons.electrical_services;
+    if (name.contains('nước')) return Icons.water_drop;
+    if (name.contains('mạng') || name.contains('wifi')) return Icons.wifi;
+    if (name.contains('xe') || name.contains('giữ xe')) return Icons.local_parking;
+    if (name.contains('rác') || name.contains('vệ sinh')) return Icons.delete;
+    return Icons.receipt_long;
+  }
+
+  String _getUnit(String name) {
+    name = name.toLowerCase();
+    if (name.contains('điện')) return 'kWh';
+    if (name.contains('nước')) return 'm³';
+    if (name.contains('mạng') || name.contains('wifi')) return 'phòng';
+    if (name.contains('giữ xe')) return 'xe';
+    return 'tháng';
+  }
+
+  String _formatPrice(double price) {
+    return price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
   }
 
   Widget _bottomBar(BuildContext context, CreateHostelProvider p) {

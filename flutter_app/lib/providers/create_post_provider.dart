@@ -16,7 +16,6 @@ class CreatePostProvider with ChangeNotifier {
   int currentStep = 0;
 
   final titleControler = TextEditingController();
-  String roomType = 'Phòng đơn';
   final floorController = TextEditingController();
   final addressController = TextEditingController();
   final areaController = TextEditingController();
@@ -25,15 +24,30 @@ class CreatePostProvider with ChangeNotifier {
   final capacityController = TextEditingController();
   final currentResidentsController = TextEditingController();
   final priceController = TextEditingController();
+  final depositController = TextEditingController();
+  final promotionalMoneyController = TextEditingController();
+  final parkingController = TextEditingController();
 
-  String pricingType = 'per_person';
+  String roomType = 'Phòng đơn';
+  String genderRequirement = 'Không yêu cầu';
+  String pricingType = 'per_room';
   bool includesUtilities = false;
+
+  DateTime? promotionStartDate;
+  DateTime? promotionEndDate;
 
   List<XFile> selectedImages = []; 
   List<String> imageUrls = []; 
 
   List<String> selectedAmenities = [];
   List<String> selectedFurniture = [];
+
+  final List<String> amenitiesList = [
+    'Wifi', 'Điều hòa', 'Tủ lạnh', 'Máy giặt', 'Bếp', 'Bàn ghế', 'Gác lửng', 'Camera', 'Thang máy'
+  ];
+  final List<String> furnitureList = [
+    'Giường', 'Tủ quần áo', 'Bàn học', 'Ghế', 'Kệ sách', 'Bàn trang điểm', 'Tivi'
+  ];
 
   bool isLoading = false; 
   bool isUploadingImages = false;
@@ -107,6 +121,84 @@ class CreatePostProvider with ChangeNotifier {
     isUploadingImages = false;
     notifyListeners();
     return true;
+  }
+
+Future<bool> createRoomForHostel(String hostelId, BuildContext context) async {
+    try {
+      if (selectedImages.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Vui lòng chọn ít nhất 1 ảnh")),
+        );
+        return false;
+      }
+
+      isLoading = true;
+      notifyListeners();
+
+      if (imageUrls.length != selectedImages.length) {
+        final ok = await uploadAllImages();
+        if (!ok) throw Exception("Upload ảnh thất bại");
+      }
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("Chưa đăng nhập");
+
+      final roomRef = FirebaseFirestore.instance
+          .collection('hostels')
+          .doc(hostelId)
+          .collection('rooms')
+          .doc();
+
+      final roomData = {
+        'id': roomRef.id,
+        'hostelId': hostelId,
+        'ownerId': user.uid,
+        'title': titleControler.text.trim(),
+        'roomNumber': roomNumberController.text.trim().isEmpty
+            ? 'P${floorController.text.padLeft(2, '0')}'
+            : roomNumberController.text.trim(),
+        'floor': int.tryParse(floorController.text) ?? 1,
+        'area': double.tryParse(areaController.text) ?? 20.0,
+        'capacity': int.tryParse(capacityController.text) ?? 2,
+        'currentResidents': int.tryParse(currentResidentsController.text) ?? 0,
+        'price': double.tryParse(priceController.text.replaceAll(RegExp(r'[.,]'), '')) ?? 0,
+        'pricingType': pricingType,
+        'includesUtilities': includesUtilities,
+        'roomType': roomType,
+        'genderRequirement': genderRequirement,
+        'amenities': selectedAmenities,
+        'furniture': selectedFurniture,
+        'description': descriptionController.text.trim(),
+        'images': imageUrls,
+        'status': 'available',
+        'isAvailable': true,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await roomRef.set(roomData);
+
+      await FirebaseFirestore.instance
+          .collection('hostels')
+          .doc(hostelId)
+          .update({'totalRooms': FieldValue.increment(1)});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Thêm phòng thành công!")),
+      );
+
+      _reset();
+      return true;
+    } catch (e) {
+      print("Lỗi tạo phòng: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e")),
+      );
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> createPost(BuildContext context) async {
@@ -200,6 +292,9 @@ class CreatePostProvider with ChangeNotifier {
     selectedFurniture.clear();
     selectedImages.clear();
     imageUrls.clear();
+    depositController.clear();
+    promotionalMoneyController.clear();
+    parkingController.clear();
     roomType = 'Phòng đơn';
     pricingType = 'per_person';
     includesUtilities = false;
@@ -216,6 +311,9 @@ class CreatePostProvider with ChangeNotifier {
     currentResidentsController.dispose();
     priceController.dispose();
     descriptionController.dispose();
+    depositController.clear();
+    promotionalMoneyController.clear();
+    parkingController.clear();
     super.dispose();
   }
 }

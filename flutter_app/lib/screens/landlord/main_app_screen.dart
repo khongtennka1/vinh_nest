@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:room_rental_app/providers/user_provider.dart';
 import 'package:room_rental_app/screens/message/message_screen.dart';
-import 'package:room_rental_app/screens/user/profile/profile_screen.dart';
+import 'package:room_rental_app/screens/user/profile/profile_screen.dart'
+    hide ProfileScreen;
+import 'package:room_rental_app/screens/landlord/home_screen.dart';
+
+import 'package:room_rental_app/screens/landlord/profile_screen.dart';
+import 'package:room_rental_app/screens/message/message_screen.dart';
 import 'package:room_rental_app/screens/landlord/home_screen.dart';
 
 class VideoScreen extends StatelessWidget {
