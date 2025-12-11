@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:room_rental_app/providers/ConversationProvider.dart';
 import 'package:room_rental_app/screens/message/chat_detail_screen.dart';
 
 class OtherProfileScreen extends StatefulWidget {
@@ -422,6 +420,12 @@ class _OtherProfileScreen extends State<OtherProfileScreen> {
     );
   }
 
+  // ------------------ helper to generate conversationId ------------------
+  String _generateConversationId(String a, String b) {
+    final list = [a, b]..sort();
+    return '${list[0]}-${list[1]}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -590,57 +594,69 @@ class _OtherProfileScreen extends State<OtherProfileScreen> {
                                   final meId = currentUser.uid;
                                   final peerId = widget.userId;
 
-                                  final contactDoc = await _fire
+                                  // Tạo conversationId cố định (giống RoomDetailScreen)
+                                  final conversationId =
+                                      _generateConversationId(meId, peerId);
+
+                                  // prepare conversation doc ref
+                                  final convoRef = _fire
+                                      .collection('conversations')
+                                      .doc(conversationId);
+                                  final convoSnap = await convoRef.get();
+
+                                  if (!convoSnap.exists) {
+                                    await convoRef.set({
+                                      'id': conversationId,
+                                      'members': [meId, peerId],
+                                      'createdAt': FieldValue.serverTimestamp(),
+                                    });
+                                  }
+
+                                  // Lấy thông tin current user để lưu vào contact (name/avatar)
+                                  final myDoc = await _fire
+                                      .collection('users')
+                                      .doc(meId)
+                                      .get();
+                                  final myName =
+                                      (myDoc.data()?['name'] ?? '') as String;
+                                  final myAvatar =
+                                      (myDoc.data()?['avatar'] ?? '') as String;
+
+                                  // Cập nhật contacts cho cả hai bên (merge để không ghi đè)
+                                  await _fire
                                       .collection('users')
                                       .doc(meId)
                                       .collection('contacts')
                                       .doc(peerId)
-                                      .get();
+                                      .set({
+                                        'peerId': peerId,
+                                        'name': name,
+                                        'avatar': avatar,
+                                        'conversationId': conversationId,
+                                        'updatedAt':
+                                            FieldValue.serverTimestamp(),
+                                      }, SetOptions(merge: true));
 
-                                  String convoId = '';
-                                  if (contactDoc.exists) {
-                                    convoId =
-                                        (contactDoc.data()?['conversationId']
-                                            as String?) ??
-                                        '';
-                                  }
-
-                                  if (convoId.isEmpty) {
-                                    convoId =
-                                        await Provider.of<ConversationProvider>(
-                                          context,
-                                          listen: false,
-                                        ).getOrCreateConversation(
-                                          myId: meId,
-                                          peerId: peerId,
-                                          peerName: name,
-                                          peerAvatar: avatar,
-                                        );
-
-                                    await _fire
-                                        .collection('users')
-                                        .doc(meId)
-                                        .collection('contacts')
-                                        .doc(peerId)
-                                        .set({
-                                          'conversationId': convoId,
-                                        }, SetOptions(merge: true));
-                                    await _fire
-                                        .collection('users')
-                                        .doc(peerId)
-                                        .collection('contacts')
-                                        .doc(meId)
-                                        .set({
-                                          'conversationId': convoId,
-                                        }, SetOptions(merge: true));
-                                  }
+                                  await _fire
+                                      .collection('users')
+                                      .doc(peerId)
+                                      .collection('contacts')
+                                      .doc(meId)
+                                      .set({
+                                        'peerId': meId,
+                                        'name': myName,
+                                        'avatar': myAvatar,
+                                        'conversationId': conversationId,
+                                        'updatedAt':
+                                            FieldValue.serverTimestamp(),
+                                      }, SetOptions(merge: true));
 
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => ChatDetailScreen(
                                         userName: name,
-                                        conversationId: convoId,
+                                        conversationId: conversationId,
                                         peerId: peerId,
                                       ),
                                     ),

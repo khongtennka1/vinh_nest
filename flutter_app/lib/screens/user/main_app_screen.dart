@@ -5,30 +5,8 @@ import 'package:room_rental_app/providers/user_provider.dart';
 import 'package:room_rental_app/screens/message/message_screen.dart';
 import 'package:room_rental_app/screens/user/profile/profile_screen.dart';
 import 'package:room_rental_app/screens/user/room/create_post_screen.dart';
+import 'package:room_rental_app/screens/utilities/Expense_Screen.dart';
 import 'home_screen.dart';
-
-class VideoScreen extends StatelessWidget {
-  const VideoScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.ondemand_video, size: 80, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'Video\nSắp ra mắt!',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({super.key});
@@ -42,7 +20,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const VideoScreen(),
+    const ExpenseScreen(),
     const MessageScreen(),
     const ProfileScreen(),
   ];
@@ -88,8 +66,8 @@ class _MainAppScreenState extends State<MainAppScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.ondemand_video),
-            label: 'Video',
+            icon: Icon(Icons.monetization_on),
+            label: 'Chi tiêu',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Tin nhắn'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Cá nhân'),

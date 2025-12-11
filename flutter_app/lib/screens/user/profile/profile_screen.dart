@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:room_rental_app/providers/auth_provider.dart';
 import 'package:room_rental_app/providers/user_provider.dart';
+import 'package:room_rental_app/screens/user/profile/appointments_screen.dart';
+import 'package:room_rental_app/screens/user/profile/favorites_screen.dart';
 import 'package:room_rental_app/screens/user/room/my_posts_screen.dart';
 import 'edit_profile_screen.dart';
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -135,11 +138,18 @@ class ProfileScreen extends StatelessWidget {
               _buildMenuItem(
                 icon: Icons.favorite_border,
                 title: 'Bài đăng yêu thích',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                ),
               ),
               _buildMenuItem(
                 icon: Icons.calendar_today,
                 title: 'Lịch hẹn xem phòng',
-                badge: '31',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
+                ),
               ),
               _buildMenuItem(icon: Icons.receipt_long, title: 'Hoá đơn'),
               _buildMenuItem(icon: Icons.description, title: 'Hợp đồng'),
